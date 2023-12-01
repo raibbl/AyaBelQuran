@@ -14,9 +14,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,18 +27,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.compose.foundation.CurvedLayout
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
@@ -104,49 +113,64 @@ fun WearApp(ayaText: String,ayaAudioUrl: String) {
 
 @Composable
 fun Aya(ayaText: String,ayaAudioUrl:String) {
-    // Create a scroll state for the column
-    val scrollState = rememberScrollState()
-
-    BoxWithConstraints {
-        // Determine if the screen might be round
-        val isRoundScreen = maxWidth < maxHeight
-        val horizontalPadding = if (isRoundScreen) 22.dp else 8.dp
-        val verticalPadding = if (isRoundScreen) 22.dp else 8.dp
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Column(
             modifier = Modifier
-                .padding(horizontal = horizontalPadding, vertical = verticalPadding )
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(30.dp)) // Adjust the height as needed
             Text(
                 text = ayaText,
                 textAlign = TextAlign.Center,
+                fontSize = 15.sp,
+                modifier = Modifier
+                    .padding(start=30.dp,end=30.dp,top=35.dp,bottom=40.dp)
+                    .align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colors.primary
             )
-            Spacer(modifier = Modifier.height(12.dp)) // Adjust the height as needed
+        }
+
+        // Navigation Bar at the bottom
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(35.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
             PlayButton {
                 playAudioFromUrl(ayaAudioUrl)
             }
         }
     }
+
 }
 
 @Composable
 fun PlayButton(onClick: () -> Unit) {
-    Button(onClick = onClick) {
-        Text("Play")
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = "Play",
+//                Playmodifier = Modifier.padding(end = 8.dp)
+            )
+            Text("ترتيل", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
 
 
 
-@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
-}
+
 
 var mediaPlayer: MediaPlayer? = null
 
