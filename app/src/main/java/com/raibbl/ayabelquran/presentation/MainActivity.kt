@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
 // Add the request to the RequestQueue.
         queue.add(stringRequest)
         setContent {
-            WearApp(responseString.value)
+            WearApp(responseString.value,"https://cdn.islamic.network/quran/audio/128/ar.alafasy/262.mp3")
         }
     }
 }
@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun WearApp(ayaText: String) {
+fun WearApp(ayaText: String,ayaAudioUrl: String) {
     AyaBelQuranTheme {
         Box(
             modifier = Modifier
@@ -97,13 +97,13 @@ fun WearApp(ayaText: String) {
                 .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center
         ) {
-            Aya(ayaText = ayaText)
+            Aya(ayaText = ayaText, ayaAudioUrl =ayaAudioUrl )
         }
     }
 }
 
 @Composable
-fun Aya(ayaText: String) {
+fun Aya(ayaText: String,ayaAudioUrl:String) {
     // Create a scroll state for the column
     val scrollState = rememberScrollState()
 
@@ -126,7 +126,7 @@ fun Aya(ayaText: String) {
             )
             Spacer(modifier = Modifier.height(12.dp)) // Adjust the height as needed
             PlayButton {
-                playAudioFromUrl("https://cdn.islamic.network/quran/audio/128/ar.alafasy/262.mp3")
+                playAudioFromUrl(ayaAudioUrl)
             }
         }
     }
