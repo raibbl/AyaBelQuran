@@ -68,14 +68,17 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
-        fetchVerseData(this, responseString, verseNumber, false)
+        val verseTafsir = mutableStateOf<JSONObject?>(null)
+
+        fetchVerseData(this, responseString, verseNumber,verseTafsir,false)
         setContent {
             WearApp(
                 responseString.value,
                 "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
-                    fetchVerseData(this, responseString, verseNumber, true)
-                })
+                    fetchVerseData(this, responseString, verseNumber, verseTafsir,true)
+                },verseTafsir)
+
         }
     }
 }
@@ -84,7 +87,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun WearApp(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
+fun WearApp(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit,   verseTafsir: MutableState<JSONObject?>,  ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(0f to 0, with(LocalDensity.current){-400.dp.toPx()} to 1) // Adjust the position value as needed
 
@@ -104,7 +107,7 @@ fun WearApp(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
         if (swipeableState.currentValue == 0) {
             AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
         } else {
-            SecondPage()
+            SecondPage(verseTafsir)
         }
     }
 }
@@ -166,8 +169,8 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
 }
 
 @Composable
-fun SecondPage() {
-    Text("hey")
+fun SecondPage(   verseTafsir: MutableState<JSONObject?>) {
+    verseTafsir.value?.let { Text(text= it.getString("text")) }
 }
 
 
@@ -198,7 +201,7 @@ fun releaseMediaPlayer() {
     mediaPlayer = null
 }
 
-fun generateDailyVerseUrl(randomize: Boolean): String {
+fun generateVerseNumber(randomize: Boolean): Int {
     val verseNumber: Int = if (randomize) {
         // Completely random verse number
         Random().nextInt(6236) + 1
@@ -212,20 +215,22 @@ fun generateDailyVerseUrl(randomize: Boolean): String {
     }
 
     // Construct the URL with the generated verse number
-    return "https://api.alquran.cloud/v1/ayah/$verseNumber/editions/quran-uthmani,en.asad"
+    return verseNumber
 }
 
 fun fetchVerseData(
     context: Context,
     responseString: MutableState<String>,
     verseNumber: MutableState<Int>,
+    verseTafsir: MutableState<JSONObject?>,
     randomize: Boolean
 ) {
     val queue = Volley.newRequestQueue(context)
-    val url = generateDailyVerseUrl(randomize)
+    val generatedVerseNumber = generateVerseNumber(randomize)
+    val verseRequestUrl =  "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 
-    val stringRequest = StringRequest(
-        Request.Method.GET, url,
+    val verseRequest = StringRequest(
+        Request.Method.GET, verseRequestUrl,
         { response ->
             try {
                 val obj = JSONObject(response)
@@ -247,6 +252,26 @@ fun fetchVerseData(
             Log.e("fetchVerseData", "Request failed")
         }
     )
+    val verseTafsirRequestUrl =  "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/ar.muyassar"
+    val verseTafsirRequest = StringRequest(
+        Request.Method.GET, verseTafsirRequestUrl,
+        { response ->
+            try {
+                val obj = JSONObject(response)
+                val verseTafsirObject = obj.getJSONObject("data")
+                    verseTafsir.value = verseTafsirObject
 
-    queue.add(stringRequest)
+            } catch (e: Exception) {
+                responseString.value = "Error parsing data!"
+                Log.e("fetchVerseData", "Error: ${e.message}")
+            }
+        },
+        {
+            responseString.value = "That didn't work!"
+            Log.e("fetchVerseData", "Request failed")
+        }
+    )
+
+    queue.add(verseRequest)
+    queue.add(verseTafsirRequest)
 }
