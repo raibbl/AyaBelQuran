@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,20 +33,21 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ExperimentalWearMaterialApi
+import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.rememberSwipeableState
+import androidx.wear.compose.material.swipeable
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.raibbl.ayabelquran.presentation.theme.AyaBelQuranTheme
 import org.json.JSONObject
 import java.util.Random
 
@@ -79,22 +81,37 @@ class MainActivity : ComponentActivity() {
 }
 
 
+
+@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun WearApp(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
-    AyaBelQuranTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            Aya(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
+    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val anchors = mapOf(0f to 0, with(LocalDensity.current){-400.dp.toPx()} to 1) // Adjust the position value as needed
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+            .swipeable(
+                state = swipeableState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                orientation = Orientation.Horizontal
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (swipeableState.currentValue == 0) {
+            AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
+        } else {
+            SecondPage()
         }
     }
 }
 
+
 @Composable
-fun Aya(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
+fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -146,6 +163,11 @@ fun Aya(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
         }
     }
 
+}
+
+@Composable
+fun SecondPage() {
+    Text("hey")
 }
 
 
