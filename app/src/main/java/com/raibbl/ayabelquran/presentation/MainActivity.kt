@@ -1,4 +1,3 @@
-
 package com.raibbl.ayabelquran.presentation
 
 import android.annotation.SuppressLint
@@ -70,26 +69,33 @@ class MainActivity : ComponentActivity() {
         val verseNumber = mutableIntStateOf(0)
         val verseTafsir = mutableStateOf<JSONObject?>(null)
 
-        fetchVerseData(this, responseString, verseNumber,verseTafsir,false)
+        fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {
             WearApp(
                 responseString.value,
                 "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
-                    fetchVerseData(this, responseString, verseNumber, verseTafsir,true)
-                },verseTafsir)
+                    fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
+                }, verseTafsir
+            )
 
         }
     }
 }
 
 
-
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun WearApp(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit,   verseTafsir: MutableState<JSONObject?>,  ) {
+fun WearApp(
+    ayaText: String,
+    ayaAudioUrl: String,
+    onRefresh: () -> Unit,
+    verseTafsir: MutableState<JSONObject?>,
+) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
-    val anchors = mapOf(0f to 0, with(LocalDensity.current){-400.dp.toPx()} to 1) // Adjust the position value as needed
+    val anchors = mapOf(
+        0f to 0,
+        with(LocalDensity.current) { -400.dp.toPx() } to 1) // Adjust the position value as needed
 
 
     Box(
@@ -169,8 +175,8 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
 }
 
 @Composable
-fun SecondPage(   verseTafsir: MutableState<JSONObject?>) {
-    verseTafsir.value?.let { Text(text= it.getString("text")) }
+fun SecondPage(verseTafsir: MutableState<JSONObject?>) {
+    verseTafsir.value?.let { Text(text = it.getString("text")) }
 }
 
 
@@ -227,7 +233,8 @@ fun fetchVerseData(
 ) {
     val queue = Volley.newRequestQueue(context)
     val generatedVerseNumber = generateVerseNumber(randomize)
-    val verseRequestUrl =  "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
+    val verseRequestUrl =
+        "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 
     val verseRequest = StringRequest(
         Request.Method.GET, verseRequestUrl,
@@ -252,14 +259,15 @@ fun fetchVerseData(
             Log.e("fetchVerseData", "Request failed")
         }
     )
-    val verseTafsirRequestUrl =  "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/ar.muyassar"
+    val verseTafsirRequestUrl =
+        "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/ar.muyassar"
     val verseTafsirRequest = StringRequest(
         Request.Method.GET, verseTafsirRequestUrl,
         { response ->
             try {
                 val obj = JSONObject(response)
                 val verseTafsirObject = obj.getJSONObject("data")
-                    verseTafsir.value = verseTafsirObject
+                verseTafsir.value = verseTafsirObject
 
             } catch (e: Exception) {
                 responseString.value = "Error parsing data!"
