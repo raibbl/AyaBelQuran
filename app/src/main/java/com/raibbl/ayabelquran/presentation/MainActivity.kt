@@ -36,6 +36,8 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -68,25 +70,26 @@ import java.util.Random
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
     private lateinit var textToSpeech: TextToSpeech
+
     override fun onDestroy() {
         if (::textToSpeech.isInitialized) {
             textToSpeech.stop()
             textToSpeech.shutdown()
         }
+
         super.onDestroy()
         releaseMediaPlayer()
     }
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = textToSpeech.setLanguage( Locale("ar"))
+            val result = textToSpeech.setLanguage(Locale("ar"))
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "Language not supported")
-                val installIntent = Intent()
-                installIntent.action = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
-                this.startActivity(installIntent)
+
+
             } else {
-              // it is working
+                // it is working
                 // Try to pre-load the engine to make it faster
                 textToSpeech.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
             }
@@ -105,7 +108,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
         val verseTafsir = mutableStateOf(JSONObject("{data:{}}"))
-
+        Log.d("isttsLangaugeAvaliabe", textToSpeech.isLanguageAvailable(Locale("ar")).toString())
         fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {
             WearApp(
@@ -113,7 +116,11 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 "https://cdn.islamic.network/quran/audio/64/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
                     fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
-                }, verseTafsir.value, onTafsirPLay = { stringToSpeak: String -> speakOut(textToSpeech, stringToSpeak) }
+                },
+                verseTafsir.value,
+                onTafsirPLay = { stringToSpeak: String -> speakOut(textToSpeech, stringToSpeak) },
+                isTTSLanagaugeAvailable =     (textToSpeech.isLanguageAvailable(Locale("ar")) != 0),
+                onTTSAlertDismiss = {installTTSIntent(this)}
             )
 
         }
@@ -121,7 +128,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 }
 
 
-@OptIn(ExperimentalWearMaterialApi::class)
+@OptIn(ExperimentalWearMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WearApp(
     ayaText: String,
@@ -129,6 +136,8 @@ fun WearApp(
     onRefresh: () -> Unit,
     verseTafsir: JSONObject,
     onTafsirPLay: (String) -> Unit,
+    isTTSLanagaugeAvailable: Boolean,
+    onTTSAlertDismiss: () -> Unit,
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
@@ -148,11 +157,17 @@ fun WearApp(
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (swipeableState.currentValue == 0) {
-            AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
-        } else {
-            SecondPage(verseTafsir, onTafsirPLay)
+        if(!isTTSLanagaugeAvailable){
+            AlertDialog(text= { Text(text = "مكتبة تحويل النص إلى كلام باللغة العربية غير متوفرة. تُستخدم هذه المكتبة لقراءة التفسير، وستتم مطالبتك بتثبيتها الآن، اختر اللغة العربية من فضلك" ) },onDismissRequest = onTTSAlertDismiss, confirmButton = { /*TODO*/ })
+    
+        } else{
+            if (swipeableState.currentValue == 0) {
+                AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
+            } else {
+                SecondPage(verseTafsir, onTafsirPLay)
+            }
         }
+
     }
 }
 
@@ -434,9 +449,16 @@ fun speakOut(textToSpeech: TextToSpeech, text: String) {
     if (textToSpeech.isSpeaking) {
         textToSpeech.stop()
         Log.d("speakOutPause", "tried to pause")
-    } else{
+    } else {
         textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
+}
+
+fun installTTSIntent(context: Context ){
+    Log.d("installTTSIntent", "installTTSIntent: here ")
+    val installIntent = Intent()
+    installIntent.action = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
+    context.startActivity(installIntent)
 }
 
