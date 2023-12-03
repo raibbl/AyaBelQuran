@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WearApp(
                 responseString.value,
-                "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber.intValue}.mp3",
+                "https://cdn.islamic.network/quran/audio/64/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
                     fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
                 }, verseTafsir.value
