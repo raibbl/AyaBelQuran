@@ -2,21 +2,13 @@ package com.raibbl.ayabelquran.presentation
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.icu.util.Calendar
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
@@ -26,20 +18,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -61,44 +49,20 @@ import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
-import java.util.Locale
 import java.util.Random
 
 
-class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
+class MainActivity : ComponentActivity() {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
-    private lateinit var textToSpeech: TextToSpeech
     override fun onDestroy() {
-        if (::textToSpeech.isInitialized) {
-            textToSpeech.stop()
-            textToSpeech.shutdown()
-        }
         super.onDestroy()
         releaseMediaPlayer()
-    }
-
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = textToSpeech.setLanguage( Locale("ar"))
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS", "Language not supported")
-                val installIntent = Intent()
-                installIntent.action = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
-                this.startActivity(installIntent)
-            } else {
-              // it is working
-                // Try to pre-load the engine to make it faster
-                textToSpeech.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
-            }
-        } else {
-            Log.e("TTS", "Initialization failed")
-        }
     }
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        textToSpeech = TextToSpeech(this, this)
+
         super.onCreate(savedInstanceState)
 
         setTheme(android.R.style.Theme_DeviceDefault)
@@ -113,7 +77,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 "https://cdn.islamic.network/quran/audio/64/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
                     fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
-                }, verseTafsir.value, onTafsirPLay = { stringToSpeak: String -> speakOut(textToSpeech, stringToSpeak) }
+                }, verseTafsir.value
             )
 
         }
@@ -128,7 +92,6 @@ fun WearApp(
     ayaAudioUrl: String,
     onRefresh: () -> Unit,
     verseTafsir: JSONObject,
-    onTafsirPLay: (String) -> Unit,
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
@@ -151,7 +114,7 @@ fun WearApp(
         if (swipeableState.currentValue == 0) {
             AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
         } else {
-            SecondPage(verseTafsir, onTafsirPLay)
+            SecondPage(verseTafsir)
         }
     }
 }
@@ -163,7 +126,6 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        AnimatedSwipeHint(direction = "right")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -214,13 +176,11 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
 }
 
 @Composable
-fun SecondPage(verseTafsir: JSONObject, onTafsirPLay: (stringToPlay: String) -> Unit) {
-    var verse = verseTafsir.getString("text")
+fun SecondPage(verseTafsir: JSONObject) {
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        AnimatedSwipeHint(direction = "left")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -228,9 +188,7 @@ fun SecondPage(verseTafsir: JSONObject, onTafsirPLay: (stringToPlay: String) -> 
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "${
-                    verseTafsir.getJSONObject("surah").getString("name")
-                } أية-${convertToArabicNumbers(verseTafsir.getInt("numberInSurah"))}",
+                text = "${verseTafsir.getJSONObject("surah").getString("name")} أية-${convertToArabicNumbers(verseTafsir.getInt("numberInSurah"))}",
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
@@ -240,7 +198,7 @@ fun SecondPage(verseTafsir: JSONObject, onTafsirPLay: (stringToPlay: String) -> 
                 color = MaterialTheme.colors.primary
             )
             Text(
-                text = verse,
+                text = verseTafsir.getString("text"),
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 modifier = Modifier
@@ -248,31 +206,7 @@ fun SecondPage(verseTafsir: JSONObject, onTafsirPLay: (stringToPlay: String) -> 
                     .align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colors.primary
             )
-
-
         }
-
-        // Navigation Bar at the bottom
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(50.dp)
-                .padding(bottom = 20.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-
-            IconButton(onClick = { onTafsirPLay(verse) }) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Play",
-                    modifier = Modifier.size(40.dp),
-
-                    )
-            }
-        }
-
     }
 }
 
@@ -382,18 +316,7 @@ fun fetchVerseData(
 }
 
 fun convertToArabicNumbers(num: Number): String {
-    val arabicNumbers = listOf(
-        '\u0660',
-        '\u0661',
-        '\u0662',
-        '\u0663',
-        '\u0664',
-        '\u0665',
-        '\u0666',
-        '\u0667',
-        '\u0668',
-        '\u0669'
-    )
+    val arabicNumbers = listOf('\u0660', '\u0661', '\u0662', '\u0663', '\u0664', '\u0665', '\u0666', '\u0667', '\u0668', '\u0669')
     return num.toString().map { digit ->
         if (digit.isDigit()) {
             arabicNumbers[digit.toString().toInt()]
@@ -402,41 +325,3 @@ fun convertToArabicNumbers(num: Number): String {
         }
     }.joinToString("")
 }
-
-@Composable
-fun AnimatedSwipeHint(direction: String) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val offsetX by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 20f, // Adjust the distance
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = "animation offset"
-    )
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = if (direction == "right") Alignment.CenterEnd else Alignment.CenterStart
-    ) {
-        Icon(
-            imageVector = if (direction == "right") Icons.Default.ChevronRight else Icons.Default.ChevronLeft,
-            contentDescription = "Swipe",
-            modifier = Modifier
-                .offset(x = offsetX.dp)
-                .padding(end = 16.dp)
-        )
-    }
-}
-
-fun speakOut(textToSpeech: TextToSpeech, text: String) {
-    Log.d("speakOut", text)
-    if (textToSpeech.isSpeaking) {
-        textToSpeech.stop()
-        Log.d("speakOutPause", "tried to pause")
-    } else{
-        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-    }
-
-}
-
