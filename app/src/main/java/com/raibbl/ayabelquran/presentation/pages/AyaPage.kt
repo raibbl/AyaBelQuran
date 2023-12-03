@@ -40,7 +40,6 @@ import utilities.MediaPlayer
 @Composable
 fun AyaPage(
     ayaText: String,
-    ayaAudioUrl: String,
     onRefresh: () -> Unit,
     navController: NavHostController
 ) {
@@ -93,7 +92,7 @@ fun AyaPage(
         ) {
 
 
-            IconButton(onClick = { MediaPlayer.playAudioFromUrl(ayaAudioUrl) }) {
+            IconButton(onClick = { MediaPlayer.playAudioFromUrl() }) {
                 Icon(
                     imageVector = Icons.Filled.PlayArrow,
                     contentDescription = "Play",

@@ -7,6 +7,7 @@ import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
+import utilities.MediaPlayer
 import utilities.generateVerseNumber
 
 class VerseData {
@@ -22,6 +23,7 @@ class VerseData {
         ) {
             val queue = Volley.newRequestQueue(context)
             val generatedVerseNumber = generateVerseNumber(randomize)
+            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/64/ar.alafasy/${generatedVerseNumber}.mp3")
             val verseRequestUrl =
                 "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 

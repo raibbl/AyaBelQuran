@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
             mutableStateOf(JSONObject("""{"surah":{"name":"Test Surah Name"},text:"kk",numberInSurah:266}"""))
 
         VerseData.fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
+
         setContent {
             NavigationHost(
                 responseString.value,
