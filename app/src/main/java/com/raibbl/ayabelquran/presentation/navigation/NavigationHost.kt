@@ -23,7 +23,6 @@ fun NavigationHost(
         composable(Screen.MainScreen.route) {
             AyaPage(
                 ayaText = ayaText,
-                ayaAudioUrl = ayaAudioUrl,
                 onRefresh = onRefresh,
                 navController = navController
             )
