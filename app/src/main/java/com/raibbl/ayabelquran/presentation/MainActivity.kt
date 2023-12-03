@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
-        val verseTafsir = mutableStateOf<JSONObject?>(null)
+        val verseTafsir = mutableStateOf<JSONObject>(JSONObject("{data:{}}"))
 
         fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                 "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
                     fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
-                }, verseTafsir
+                }, verseTafsir.value
             )
 
         }
@@ -90,7 +90,7 @@ fun WearApp(
     ayaText: String,
     ayaAudioUrl: String,
     onRefresh: () -> Unit,
-    verseTafsir: MutableState<JSONObject?>,
+    verseTafsir: JSONObject,
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
@@ -175,8 +175,28 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
 }
 
 @Composable
-fun SecondPage(verseTafsir: MutableState<JSONObject?>) {
-    verseTafsir.value?.let { Text(text = it.getString("text")) }
+fun SecondPage(verseTafsir: JSONObject) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = verseTafsir.getString("text"),
+                textAlign = TextAlign.Center,
+                fontSize = 15.sp,
+                modifier = Modifier
+                    .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 40.dp)
+                    .align(Alignment.CenterHorizontally),
+                color = MaterialTheme.colors.primary
+            )
+        }
+    }
 }
 
 
@@ -228,7 +248,7 @@ fun fetchVerseData(
     context: Context,
     responseString: MutableState<String>,
     verseNumber: MutableState<Int>,
-    verseTafsir: MutableState<JSONObject?>,
+    verseTafsir: MutableState<JSONObject>,
     randomize: Boolean
 ) {
     val queue = Volley.newRequestQueue(context)
