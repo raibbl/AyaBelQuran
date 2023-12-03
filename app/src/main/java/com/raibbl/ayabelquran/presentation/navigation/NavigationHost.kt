@@ -10,9 +10,6 @@ import com.raibbl.ayabelquran.presentation.pages.TafsirPage
 import org.json.JSONObject
 
 
-
-
-
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun NavigationHost(
@@ -35,7 +32,7 @@ fun NavigationHost(
         }
 
         composable(Screen.tafsirPage.route) {
-            TafsirPage(verseTafsir,navController)
+            TafsirPage(verseTafsir, navController)
         }
     }
 }

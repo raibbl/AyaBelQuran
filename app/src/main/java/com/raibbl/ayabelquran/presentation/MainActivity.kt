@@ -13,7 +13,6 @@ import org.json.JSONObject
 import utilities.MediaPlayer
 
 
-
 class MainActivity : ComponentActivity() {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
     override fun onDestroy() {
@@ -30,7 +29,8 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
-        val verseTafsir = mutableStateOf(JSONObject("""{"surah":{"name":"Test Surah Name"},text:"kk",numberInSurah:266}"""))
+        val verseTafsir =
+            mutableStateOf(JSONObject("""{"surah":{"name":"Test Surah Name"},text:"kk",numberInSurah:266}"""))
 
         VerseData.fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {

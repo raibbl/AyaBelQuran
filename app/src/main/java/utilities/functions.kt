@@ -27,7 +27,6 @@ fun convertToArabicNumbers(num: Number): String {
 }
 
 
-
 fun generateVerseNumber(randomize: Boolean): Int {
     val verseNumber: Int = if (randomize) {
         // Completely random verse number

@@ -38,7 +38,12 @@ import utilities.MediaPlayer
 
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit,navController: NavHostController) {
+fun AyaPage(
+    ayaText: String,
+    ayaAudioUrl: String,
+    onRefresh: () -> Unit,
+    navController: NavHostController
+) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
         0f to 0,

@@ -69,11 +69,11 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // material icons
-    implementation ("androidx.compose.material:material-icons-core:1.5.4")
-    implementation ("androidx.compose.material:material-icons-extended:1.5.4")
-    implementation ("androidx.navigation:navigation-compose:2.7.5")
+    implementation("androidx.compose.material:material-icons-core:1.5.4")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
 
     // back navigation
-    implementation ("androidx.activity:activity-ktx:1.8.1")
+    implementation("androidx.activity:activity-ktx:1.8.1")
 
 }
