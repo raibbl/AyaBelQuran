@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         setTheme(android.R.style.Theme_DeviceDefault)
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
-        val verseTafsir = mutableStateOf<JSONObject>(JSONObject("{data:{}}"))
+        val verseTafsir = mutableStateOf(JSONObject("{data:{}}"))
 
         fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {
