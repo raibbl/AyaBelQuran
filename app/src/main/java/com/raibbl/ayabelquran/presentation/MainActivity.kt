@@ -15,7 +15,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +35,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +48,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.Icon
@@ -78,7 +82,7 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         val responseString = mutableStateOf("Loading...")
         val verseNumber = mutableIntStateOf(0)
-        val verseTafsir = mutableStateOf(JSONObject("{data:{}}"))
+        val verseTafsir = mutableStateOf(JSONObject("""{"surah":{"name":"Test Surah Name"},text:"kk",numberInSurah:266}"""))
 
         fetchVerseData(this, responseString, verseNumber, verseTafsir, false)
         setContent {
@@ -93,8 +97,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+sealed class Screen(val route: String) {
+    object MainScreen : Screen("main_screen")
+
+    object tafsirPage : Screen("tafsirPage_screen")
+    object SwipeUpScreen : Screen("swipe_up_screen")
+}
 
 
+enum class PanelState { Hidden, Visible }
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun WearApp(
@@ -103,40 +114,60 @@ fun WearApp(
     onRefresh: () -> Unit,
     verseTafsir: JSONObject,
 ) {
-    val swipeableState = rememberSwipeableState(initialValue = 0)
-    val anchors = mapOf(
-        0f to 0,
-        with(LocalDensity.current) { -400.dp.toPx() } to 1) // Adjust the position value as needed
+    val navController = rememberNavController()
 
+    // Navigation Host
+    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+        composable(Screen.MainScreen.route) {
+            AyaPage(
+                ayaText = ayaText,
+                ayaAudioUrl = ayaAudioUrl,
+                onRefresh = onRefresh,
+                navController = navController
+            )
+        }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colors.background)
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        if (swipeableState.currentValue == 0) {
-            AyaPage(ayaText = ayaText, ayaAudioUrl = ayaAudioUrl, onRefresh)
-        } else {
-            SecondPage(verseTafsir)
+        composable(Screen.tafsirPage.route) {
+            TafsirPage(verseTafsir,navController)
         }
     }
 }
 
 
+
+
+
+
+
+
+
+
+
+
+@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
+fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit,navController:NavHostController) {
+    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val anchors = mapOf(
+        0f to 0,
+        with(LocalDensity.current) { -400.dp.toPx() } to 1
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .swipeable(
+                state = swipeableState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                orientation = Orientation.Horizontal
+            )
     ) {
         AnimatedSwipeHint(direction = "right")
+        if (swipeableState.currentValue == 1) {
+            LaunchedEffect(Unit) {
+                navController.navigate(Screen.tafsirPage.route)
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -186,12 +217,38 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
 
 }
 
+@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun SecondPage(verseTafsir: JSONObject) {
+fun TafsirPage(verseTafsir: JSONObject, navController:NavHostController) {
+    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val anchors = mapOf(
+        0f to 0,
+        with(LocalDensity.current) { 400.dp.toPx() } to 1 // Swipe to the right
+    )
+
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .swipeable(
+                state = swipeableState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                orientation = Orientation.Horizontal
+            )
     ) {
+
+        if (swipeableState.currentValue==1){
+            LaunchedEffect(Unit) {
+                navController.navigate(Screen.MainScreen.route) {
+                    popUpTo(Screen.MainScreen.route) {
+                        inclusive = true
+                    }
+                }
+
+            }
+        }
         AnimatedSwipeHint(direction = "left")
         Column(
             modifier = Modifier
@@ -200,7 +257,8 @@ fun SecondPage(verseTafsir: JSONObject) {
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "${verseTafsir.getJSONObject("surah").getString("name")} أية-${convertToArabicNumbers(verseTafsir.getInt("numberInSurah"))}",
+                text = "${verseTafsir?.getJSONObject("surah")?.getString("name")} أية-${verseTafsir?.getInt("numberInSurah")
+                    ?.let { convertToArabicNumbers(it) }}",
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,

@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+
+
 android {
     namespace = "com.raibbl.ayabelquran"
     compileSdk = 34
@@ -18,6 +20,7 @@ android {
         }
 
     }
+
 
     buildTypes {
         release {
@@ -68,5 +71,9 @@ dependencies {
     // material icons
     implementation ("androidx.compose.material:material-icons-core:1.5.4")
     implementation ("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation ("androidx.navigation:navigation-compose:2.7.5")
+
+    // back navigation
+    implementation ("androidx.activity:activity-ktx:1.8.1")
 
 }
