@@ -9,6 +9,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
@@ -18,16 +24,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -126,6 +136,7 @@ fun AyaPage(ayaText: String, ayaAudioUrl: String, onRefresh: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
     ) {
+        AnimatedSwipeHint(direction = "right")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,6 +192,7 @@ fun SecondPage(verseTafsir: JSONObject) {
         modifier = Modifier
             .fillMaxSize()
     ) {
+        AnimatedSwipeHint(direction = "left")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -324,4 +336,29 @@ fun convertToArabicNumbers(num: Number): String {
             digit
         }
     }.joinToString("")
+}
+
+@Composable
+fun AnimatedSwipeHint(direction: String) {
+    val infiniteTransition = rememberInfiniteTransition()
+    val offsetX by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 20f, // Adjust the distance
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "animation offset"
+    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = if (direction == "right") Alignment.CenterEnd else Alignment.CenterStart
+    ) {
+        Icon(
+            imageVector = if (direction == "right") Icons.Default.ChevronRight else Icons.Default.ChevronLeft,
+            contentDescription = "Swipe",
+            modifier = Modifier
+                .offset(x = offsetX.dp)
+                .padding(end = 16.dp)
+        )
+    }
 }
