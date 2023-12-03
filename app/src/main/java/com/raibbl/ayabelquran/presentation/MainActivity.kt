@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -187,11 +188,21 @@ fun SecondPage(verseTafsir: JSONObject) {
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
+                text = "${verseTafsir.getJSONObject("surah").getString("name")} أية-${convertToArabicNumbers(verseTafsir.getInt("numberInSurah"))}",
+                textAlign = TextAlign.Center,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 15.dp)
+                    .align(Alignment.CenterHorizontally),
+                color = MaterialTheme.colors.primary
+            )
+            Text(
                 text = verseTafsir.getString("text"),
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 40.dp)
+                    .padding(start = 30.dp, end = 30.dp, top = 0.dp, bottom = 40.dp)
                     .align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colors.primary
             )
@@ -302,4 +313,15 @@ fun fetchVerseData(
 
     queue.add(verseRequest)
     queue.add(verseTafsirRequest)
+}
+
+fun convertToArabicNumbers(num: Number): String {
+    val arabicNumbers = listOf('\u0660', '\u0661', '\u0662', '\u0663', '\u0664', '\u0665', '\u0666', '\u0667', '\u0668', '\u0669')
+    return num.toString().map { digit ->
+        if (digit.isDigit()) {
+            arabicNumbers[digit.toString().toInt()]
+        } else {
+            digit
+        }
+    }.joinToString("")
 }
