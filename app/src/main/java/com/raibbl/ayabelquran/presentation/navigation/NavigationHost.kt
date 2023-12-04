@@ -13,7 +13,6 @@ import org.json.JSONObject
 @Composable
 fun NavigationHost(
     ayaText: String,
-    ayaAudioUrl: String,
     onRefresh: () -> Unit,
     verseTafsir: JSONObject,
 ) {

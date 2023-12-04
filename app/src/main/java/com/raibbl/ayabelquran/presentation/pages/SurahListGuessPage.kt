@@ -89,7 +89,7 @@ fun SurahListGuessPage(
         state = listState
     ) {
         items(surahs.size) { index ->
-            var curentSurahId = index + 1;
+            val curentSurahId = index + 1
             TextItem(
                 modifier = Modifier.fillMaxWidth(),
                 text = surahs[index],

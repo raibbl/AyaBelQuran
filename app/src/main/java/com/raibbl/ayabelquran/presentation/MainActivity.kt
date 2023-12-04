@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             NavigationHost(
                 responseString.value,
-                "https://cdn.islamic.network/quran/audio/64/ar.alafasy/${verseNumber.intValue}.mp3",
                 onRefresh = {
                     VerseData.fetchVerseData(this, responseString, verseNumber, verseTafsir, true)
                 }, verseTafsir.value
