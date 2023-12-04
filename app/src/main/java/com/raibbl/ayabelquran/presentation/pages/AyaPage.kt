@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +41,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import com.raibbl.ayabelquran.presentation.components.AnimatedScrollHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import kotlinx.coroutines.launch
@@ -73,6 +73,7 @@ fun AyaPage(
             )
     ) {
         AnimatedSwipeHint(direction = "right")
+        AnimatedScrollHint(position = "left")
         if (swipeableState.currentValue == 1) {
             LaunchedEffect(Unit) {
                 navController.navigate(Screen.tafsirPage.route)
@@ -107,7 +108,7 @@ fun AyaPage(
 
             Button(
                 onClick = {
-                    navController.navigate(Screen.tafsirPage.route)
+                    navController.navigate(Screen.surahListGuessScreen.route)
                 },
                 modifier = Modifier
                     .padding(start = 30.dp, end = 30.dp, top = 5.dp, bottom = 10.dp)

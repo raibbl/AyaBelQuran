@@ -1,5 +1,6 @@
 package com.raibbl.ayabelquran.presentation.pages
 
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -21,7 +22,6 @@ import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
@@ -32,6 +32,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import com.raibbl.ayabelquran.presentation.components.AnimatedScrollHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ import utilities.convertToArabicNumbers
 @Composable
 fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
-    val horizontalScrollState = rememberScrollState()
+    val verticalScrollState = rememberScrollState()
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
     val anchors = mapOf(
@@ -74,22 +75,24 @@ fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
             }
         }
         AnimatedSwipeHint(direction = "left")
+        AnimatedScrollHint(position = "right")
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .onRotaryScrollEvent {
                     coroutineScope.launch {
-                        horizontalScrollState.scrollBy(it.verticalScrollPixels)
+                        verticalScrollState.scrollBy(it.verticalScrollPixels)
 
-                        horizontalScrollState.animateScrollBy(0f)
+                        verticalScrollState.animateScrollBy(0f)
                     }
                     true
                 }
                 .focusRequester(focusRequester)
                 .focusable()
                 .align(Alignment.TopCenter)
-                .verticalScroll(horizontalScrollState)
+                .verticalScroll(verticalScrollState)
         ) {
             Text(
                 text = "${verseTafsir?.getJSONObject("surah")?.getString("name")} أية-${
