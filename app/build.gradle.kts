@@ -53,7 +53,6 @@ android {
 
 dependencies {
     implementation("com.android.volley:volley:1.2.1")
-    implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.ui:ui")
@@ -75,5 +74,7 @@ dependencies {
 
     // back navigation
     implementation("androidx.activity:activity-ktx:1.8.1")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1") // Use the latest version
 
 }
