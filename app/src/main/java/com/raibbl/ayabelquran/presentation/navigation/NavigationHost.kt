@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.raibbl.ayabelquran.presentation.pages.AyaPage
+import com.raibbl.ayabelquran.presentation.pages.SurahGuessAnswerPage
 import com.raibbl.ayabelquran.presentation.pages.SurahListGuessPage
 import com.raibbl.ayabelquran.presentation.pages.TafsirPage
 import org.json.JSONObject
@@ -35,5 +36,10 @@ fun NavigationHost(
         composable(Screen.surahListGuessScreen.route) {
             SurahListGuessPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
         }
+
+        composable(Screen.surahGuessAnswerScreen.route) { backStackEntry ->
+            SurahGuessAnswerPage(true,navController)
+        }
+
     }
 }

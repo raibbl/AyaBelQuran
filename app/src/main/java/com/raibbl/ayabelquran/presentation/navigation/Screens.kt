@@ -5,4 +5,6 @@ sealed class Screen(val route: String) {
 
     object tafsirPage : Screen("tafsirPage_screen")
     object surahListGuessScreen : Screen("surah_listGuess_screen")
+
+    object surahGuessAnswerScreen : Screen("surah_guessAnswer_screen")
 }

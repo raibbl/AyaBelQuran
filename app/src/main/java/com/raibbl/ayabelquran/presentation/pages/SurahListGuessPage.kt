@@ -96,11 +96,18 @@ fun SurahListGuessPage(
                 onClick = {
                     if (surahId == curentSurahId) {
                         // navigate to correct surah page with success
+                        navController.navigate("${Screen.surahGuessAnswerScreen.route}/true",)
                         Log.d(
                             "surahItem",
                             "SurahListGuessPage: correct ${surahs[index]} pressed id ${curentSurahId}"
                         )
                     } else {
+                        try {
+                            navController.navigate(Screen.surahGuessAnswerScreen.route)
+                        } catch (e: Exception) {
+                            Log.e("NavigationError", "Error navigating: ${e.message}")
+                        }
+
                         Log.d(
                             "surahItem",
                             "SurahListGuessPage: false ${surahs[index]} pressed id ${curentSurahId}, correct${surahId}"
