@@ -37,8 +37,11 @@ fun NavigationHost(
             SurahListGuessPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
         }
 
-        composable(Screen.surahGuessAnswerScreen.route) { backStackEntry ->
-            SurahGuessAnswerPage(true,navController)
+        composable("${Screen.surahGuessAnswerScreen.route}/{isCorrect}") { backStackEntry ->
+            val isCorrectString = backStackEntry.arguments?.getString("isCorrect") ?: "false"
+            val isCorrect = isCorrectString.toBoolean()
+
+            SurahGuessAnswerPage(isCorrect,navController)
         }
 
     }
