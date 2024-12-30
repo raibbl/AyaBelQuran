@@ -25,10 +25,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
@@ -43,7 +46,7 @@ import utilities.convertToArabicNumbers
 @Composable
 fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
-    val verticalScrollState = rememberScrollState()
+    val listState = rememberScalingLazyListState()
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
     val anchors = mapOf(
@@ -52,70 +55,80 @@ fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
     )
 
 
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
-            )
-    ) {
-
-        if (swipeableState.currentValue == 1) {
-            LaunchedEffect(Unit) {
-                navController.navigate(Screen.MainScreen.route) {
-                    popUpTo(Screen.MainScreen.route) {
-                        inclusive = true
-                    }
-                }
-
-            }
-        }
-        AnimatedSwipeHint(direction = "left")
-        AnimatedScrollHint(position = "right")
-
-        Column(
+    Scaffold (      positionIndicator = {
+        androidx.wear.compose.material.PositionIndicator(
+            scalingLazyListState = listState
+        )
+    } ){
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .onRotaryScrollEvent {
-                    coroutineScope.launch {
-                        verticalScrollState.scrollBy(it.verticalScrollPixels)
-
-                        verticalScrollState.animateScrollBy(0f)
-                    }
-                    true
-                }
-                .focusRequester(focusRequester)
-                .focusable()
-                .align(Alignment.TopCenter)
-                .verticalScroll(verticalScrollState)
+                .fillMaxSize()
+                .swipeable(
+                    state = swipeableState,
+                    anchors = anchors,
+                    thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                    orientation = Orientation.Horizontal
+                )
         ) {
-            Text(
-                text = "${verseTafsir?.getJSONObject("surah")?.getString("name")} أية-${
-                    verseTafsir?.getInt("numberInSurah")
-                        ?.let { convertToArabicNumbers(it) }
-                }",
-                textAlign = TextAlign.Center,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+
+            if (swipeableState.currentValue == 1) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(Screen.MainScreen.route) {
+                            inclusive = true
+                        }
+                    }
+
+                }
+            }
+            AnimatedSwipeHint(direction = "left")
+            ScalingLazyColumn(
                 modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 15.dp)
-                    .align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colors.primary
-            )
-            Text(
-                text = verseTafsir.getString("text"),
-                textAlign = TextAlign.Center,
-                fontSize = 15.sp,
-                modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, top = 0.dp, bottom = 40.dp)
-                    .align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colors.primary
-            )
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .onRotaryScrollEvent {
+                        coroutineScope.launch {
+                            listState.scrollBy(it.verticalScrollPixels)
+
+                            listState.animateScrollBy(0f)
+                        }
+                        true
+                    }
+                    .focusRequester(focusRequester)
+                    .focusable(),
+                  state = listState
+            ) {
+                item {
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
+
+                    Text(
+                        text = "${verseTafsir.getJSONObject("surah").getString("name")} أية-${
+                            verseTafsir.getInt("numberInSurah")
+                                ?.let { convertToArabicNumbers(it) }
+                        }",
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 15.dp)
+                            .fillMaxWidth(),
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+                item {
+                    Text(
+                        text = verseTafsir.getString("text"),
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        modifier = Modifier
+                            .padding(start = 30.dp, end = 30.dp, bottom = 40.dp)
+                            .fillMaxWidth(),
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+            }
         }
     }
 }

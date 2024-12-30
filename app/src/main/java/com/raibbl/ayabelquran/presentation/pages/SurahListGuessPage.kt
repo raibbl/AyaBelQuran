@@ -5,7 +5,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
+import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
@@ -66,6 +66,12 @@ fun SurahListGuessPage(
 
         }
     }
+
+    Scaffold ( positionIndicator = {
+        androidx.wear.compose.material.PositionIndicator(
+            scalingLazyListState = listState
+        )
+    } ){
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -122,6 +128,7 @@ fun SurahListGuessPage(
         }
     }
 }
+    }
 
 @Composable
 fun TextItem(modifier: Modifier, text: String, onClick: () -> Unit) {
