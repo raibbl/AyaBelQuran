@@ -28,7 +28,9 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.Text
@@ -129,4 +131,25 @@ fun TextItem(modifier: Modifier, text: String, onClick: () -> Unit) {
     ) {
         Text(text = text, style = TextStyle(fontSize = 18.sp), textAlign = TextAlign.Center)
     }
+}
+
+
+@Preview
+@Composable
+fun PreviewSurahListGuessPage() {
+    // Mocked NavHostController for the preview
+    val navController = NavHostController(LocalContext.current).apply {
+        navigatorProvider.addNavigator(
+            androidx.navigation.compose.ComposeNavigator()
+        )
+    }
+
+    // Provide a previewable Surah ID
+    val previewSurahId = 1
+
+    // Display the page in the preview
+    SurahListGuessPage(
+        surahId = previewSurahId,
+        navController = navController
+    )
 }
