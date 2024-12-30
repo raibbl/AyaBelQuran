@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -41,13 +39,21 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
-import com.raibbl.ayabelquran.presentation.components.AnimatedScrollHint
-import com.raibbl.ayabelquran.presentation.navigation.Screen
+import com.google.android.horologist.annotations.ExperimentalHorologistApi
+import com.google.android.horologist.compose.layout.ScalingLazyColumn
+import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
+import com.google.android.horologist.compose.layout.ScreenScaffold
+import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
+import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 import utilities.MediaPlayer
 
-@OptIn(ExperimentalWearMaterialApi::class, ExperimentalWearFoundationApi::class)
+
+@OptIn(
+    ExperimentalWearMaterialApi::class, ExperimentalWearFoundationApi::class,
+    ExperimentalHorologistApi::class
+)
 @Composable
 fun AyaPage(
     ayaText: String,
@@ -55,103 +61,125 @@ fun AyaPage(
     navController: NavHostController
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
-    val horizontalScrollState = rememberScrollState()
     val anchors = mapOf(
         0f to 0,
         with(LocalDensity.current) { -400.dp.toPx() } to 1
     )
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
-            )
-    ) {
-        AnimatedSwipeHint(direction = "right")
-        AnimatedScrollHint(position = "left")
-        if (swipeableState.currentValue == 1) {
-            LaunchedEffect(Unit) {
-                navController.navigate(Screen.tafsirPage.route)
-            }
-        }
 
-        Column(
-            modifier = Modifier
-                .onRotaryScrollEvent {
-                    coroutineScope.launch {
-                        horizontalScrollState.scrollBy(it.verticalScrollPixels)
+    val columnState = rememberResponsiveColumnState(
+        contentPadding = ScalingLazyColumnDefaults.padding(
+            first = ScalingLazyColumnDefaults.ItemType.Text,
+            last = ScalingLazyColumnDefaults.ItemType.SingleButton
+        )
+    )
 
-                        horizontalScrollState.animateScrollBy(0f)
-                    }
-                    true
-                }
-                .focusRequester(focusRequester)
-                .focusable()
-                .align(Alignment.TopCenter)
-                .verticalScroll(horizontalScrollState)
+    ScreenScaffold(scrollState = columnState) {
+        ScalingLazyColumn(
+            columnState = columnState
         ) {
+            item {
 
-            Text(
-                text = ayaText,
-                textAlign = TextAlign.Center,
-                fontSize = 15.sp,
-                modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, top = 35.dp, bottom = 10.dp)
-                    .align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colors.primary
-            )
-
-            Button(
-                onClick = {
-                    navController.navigate(Screen.surahListGuessScreen.route)
-                },
-                modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, top = 5.dp, bottom = 10.dp)
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Text(
-                    text = "خمن السورة",
-                    textAlign = TextAlign.Center,
-                    fontSize = 12.sp
-                )
-            }
-            // Navigation Bar at the bottom
-            Row(
-                modifier = Modifier
-                    .height(50.dp)
-                    .padding(bottom = 20.dp)
-                    .align(Alignment.CenterHorizontally),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-
-
-                Button(onClick = { MediaPlayer.playAudioFromUrl() }) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = "Play",
-                        modifier = Modifier.size(25.dp),
-
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .swipeable(
+                            state = swipeableState,
+                            anchors = anchors,
+                            thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                            orientation = Orientation.Horizontal
                         )
-                }
-                Spacer(modifier =  Modifier.width(5.dp) )
-                Button(onClick = onRefresh) {
-                    Icon(
-                        imageVector = Icons.Filled.Refresh,
-                        contentDescription = "Refresh",
-                        modifier = Modifier.size(25.dp),
-//                tint = Color.White // Change icon color if needed
-                    )
+                ) {
+
+
+                    if (swipeableState.currentValue == 1) {
+                        LaunchedEffect(Unit) {
+                            navController.navigate(Screen.tafsirPage.route)
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.End // Align everything to the right
+                    ) {
+                        Spacer(modifier = Modifier.height(50.dp)) // Push the hint to a fixed vertical position
+
+
+                            AnimatedSwipeHint(direction = "right")
+
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .onRotaryScrollEvent {
+                                coroutineScope.launch {
+                                    columnState.scrollBy(it.verticalScrollPixels)
+
+                                    columnState.animateScrollBy(0f)
+                                }
+                                true
+                            }
+                            .focusRequester(focusRequester) // Apply the focus requester correctly
+                            .focusable() // Ensure the composable is focusable
+                            .align(Alignment.TopCenter)
+                    ) {
+
+                        Text(
+                            text = ayaText,
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            modifier = Modifier
+                                .padding(bottom = 10.dp)
+                                .align(Alignment.CenterHorizontally),
+                            color = MaterialTheme.colors.primary
+                        )
+                        Button(
+                            onClick = {
+                                navController.navigate(Screen.surahListGuessScreen.route)
+                            },
+                            modifier = Modifier
+                                .padding(top = 5.dp, bottom = 10.dp)
+                                .align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(
+                                text = "خمن السورة",
+                                textAlign = TextAlign.Center,
+                                fontSize = 12.sp
+                            )
+                        }
+                        // Navigation Bar at the bottom
+                        Row(
+                            modifier = Modifier
+                                .height(50.dp)
+                                .padding(bottom = 20.dp)
+                                .align(Alignment.CenterHorizontally),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+
+
+                            Button(onClick = { MediaPlayer.playAudioFromUrl() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.PlayArrow,
+                                    contentDescription = "Play",
+                                    modifier = Modifier.size(25.dp),
+
+                                    )
+                            }
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Button(onClick = onRefresh) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "Refresh",
+                                    modifier = Modifier.size(25.dp),
+                                )
+                            }
+                        }
+
+                    }
                 }
             }
-
         }
-
-
     }
 
 }
