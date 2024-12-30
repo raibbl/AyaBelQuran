@@ -13,7 +13,7 @@ android {
         applicationId = "com.raibbl.ayabelquran"
         minSdk = 30
         targetSdk = 33
-        versionCode = 1
+        versionCode = 3
         versionName = "1.0"
         vectorDrawables {
             useSupportLibrary = true

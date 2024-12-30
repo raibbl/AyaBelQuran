@@ -5,8 +5,10 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -91,7 +93,7 @@ fun SurahListGuessPage(
         items(surahs.size) { index ->
             val curentSurahId = index + 1
             TextItem(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(60.dp),
                 text = surahs[index],
                 onClick = {
                     if (surahId == curentSurahId) {
@@ -122,9 +124,9 @@ fun SurahListGuessPage(
 @Composable
 fun TextItem(modifier: Modifier, text: String, onClick: () -> Unit) {
     Button(
-        modifier = modifier.padding(8.dp),
+        modifier = modifier.padding(4.dp),
         onClick = onClick
     ) {
-        Text(text = text, style = TextStyle(fontSize = 16.sp), textAlign = TextAlign.Center)
+        Text(text = text, style = TextStyle(fontSize = 18.sp), textAlign = TextAlign.Center)
     }
 }
