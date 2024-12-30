@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.raibbl.ayabelquran"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.raibbl.ayabelquran"
         minSdk = 30
-        targetSdk = 33
+        targetSdk = 35
         versionCode = 3
         versionName = "1.0"
         vectorDrawables {
@@ -75,6 +75,9 @@ dependencies {
     // back navigation
     implementation("androidx.activity:activity-ktx:1.8.1")
 
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1") // Use the latest version
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+
+    // library to have responsive layout
+    implementation( "com.google.android.horologist:horologist-compose-layout:0.7.5-alpha")
 
 }
