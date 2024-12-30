@@ -68,16 +68,20 @@ fun AyaPage(
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
 
+
+
     val columnState = rememberResponsiveColumnState(
         contentPadding = ScalingLazyColumnDefaults.padding(
             first = ScalingLazyColumnDefaults.ItemType.Text,
-            last = ScalingLazyColumnDefaults.ItemType.SingleButton
+            last = ScalingLazyColumnDefaults.ItemType.SingleButton,
         )
     )
 
     ScreenScaffold(scrollState = columnState) {
         ScalingLazyColumn(
+
             columnState = columnState
+
         ) {
             item {
 
@@ -130,7 +134,7 @@ fun AyaPage(
                             textAlign = TextAlign.Center,
                             fontSize = 15.sp,
                             modifier = Modifier
-                                .padding(bottom = 10.dp)
+                                .padding(start = 15.dp, end = 15.dp, bottom = 10.dp)
                                 .align(Alignment.CenterHorizontally),
                             color = MaterialTheme.colors.primary
                         )
