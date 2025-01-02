@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,7 @@ import com.google.android.horologist.compose.layout.rememberResponsiveColumnStat
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
-import utilities.MediaPlayer
+
 
 
 @OptIn(
@@ -67,7 +68,7 @@ fun AyaPage(
     )
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
-
+    val context = LocalContext.current
 
 
     val columnState = rememberResponsiveColumnState(
@@ -162,13 +163,16 @@ fun AyaPage(
                         ) {
 
 
-                            Button(onClick = { MediaPlayer.playAudioFromUrl() }) {
+                            Button(
+                                onClick = {
+                                    MediaPlayer.playAudioFromUrl(context)
+                                }
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.PlayArrow,
                                     contentDescription = "Play",
                                     modifier = Modifier.size(25.dp),
-
-                                    )
+                                )
                             }
                             Spacer(modifier = Modifier.width(5.dp))
                             Button(onClick = onRefresh) {

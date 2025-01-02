@@ -10,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import utilities.MediaPlayer
 import utilities.generateVerseNumber
 
 class VerseData {
@@ -27,7 +26,6 @@ class VerseData {
             CoroutineScope(Dispatchers.IO).launch {
                 val queue = Volley.newRequestQueue(context)
                 val generatedVerseNumber = generateVerseNumber(randomize)
-                MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/64/ar.alafasy/${generatedVerseNumber}.mp3")
                 val verseRequestUrl =
                     "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 
@@ -40,15 +38,19 @@ class VerseData {
                                 obj.getJSONArray("data").getJSONObject(0).getString("text")
                             val verseNum =
                                 obj.getJSONArray("data").getJSONObject(0).getInt("number")
-
+                            println(obj.getJSONArray("data").toString())
+                            val surahName = obj.getJSONArray("data").getJSONObject(0).getJSONObject("surah").getString("englishName")
+                            val verseInSurah = obj.getJSONArray("data").getJSONObject(0).getInt("numberInSurah")
                             responseString.value = verseText
                             verseNumber.value = verseNum
-
+                            val title = "Surah $surahName, Verse $verseInSurah"
                             // Debugging log
                             Log.d(
                                 "fetchVerseData",
                                 "Verse number: $verseNum, Verse text: $verseText"
                             )
+                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/64/ar.alafasy/${generatedVerseNumber}.mp3",
+                                title,context)
                         } catch (e: Exception) {
                             responseString.value = "Error parsing data!"
                             Log.e("fetchVerseData", "Error: ${e.message}")

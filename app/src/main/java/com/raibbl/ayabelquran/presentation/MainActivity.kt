@@ -10,14 +10,12 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import api.VerseData
 import com.raibbl.ayabelquran.presentation.navigation.NavigationHost
 import org.json.JSONObject
-import utilities.MediaPlayer
-
 
 class MainActivity : ComponentActivity() {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
     override fun onDestroy() {
         super.onDestroy()
-        MediaPlayer.releaseMediaPlayer()
+        MediaPlayer.releaseMediaPlayer(this)
     }
 
     @SuppressLint("SetTextI18n")

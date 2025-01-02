@@ -62,6 +62,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.material3:material3:1.1.2")
+    implementation ("androidx.core:core-ktx:1.15.0") // For NotificationCompat
+    implementation ("androidx.wear:wear-ongoing:1.0.0")
+    implementation ("androidx.media:media:1.6.0") // For MediaSession
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
