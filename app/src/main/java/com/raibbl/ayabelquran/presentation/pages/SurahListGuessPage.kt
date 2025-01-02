@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import com.google.android.horologist.compose.layout.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.compose.material3.Button
@@ -30,24 +31,38 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.ComposeNavigator
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import com.google.android.horologist.annotations.ExperimentalHorologistApi
+import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
+import com.google.android.horologist.compose.layout.ScalingLazyColumnState
+import com.google.android.horologist.compose.layout.ScreenScaffold
+import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
 import com.raibbl.ayabelquran.R
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalWearFoundationApi::class, ExperimentalWearMaterialApi::class)
+@OptIn(ExperimentalWearMaterialApi::class, ExperimentalHorologistApi::class)
 @Composable
 fun SurahListGuessPage(
     surahId: Int,
     navController: NavHostController
 ) {
-    val listState = rememberScalingLazyListState()
+    val listState = rememberResponsiveColumnState(
+        first = ScalingLazyColumnDefaults.ItemType.Text,
+        last = ScalingLazyColumnDefaults.ItemType.SingleButton,
+        verticalArrangement = Arrangement.spacedBy(15.dp), // Adjust vertical spacing
+        rotaryMode = ScalingLazyColumnState.RotaryMode.Scroll, // Enable rotary scrolling
+        hapticsEnabled = true,
+        reverseLayout = false,
+        userScrollEnabled = true,
+        initialItemIndex = 0
+    )
     val surahs = stringArrayResource(id = R.array.surah_array)
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val focusRequester = rememberActiveFocusRequester()
@@ -67,11 +82,7 @@ fun SurahListGuessPage(
         }
     }
 
-    Scaffold ( positionIndicator = {
-        androidx.wear.compose.material.PositionIndicator(
-            scalingLazyListState = listState
-        )
-    } ){
+    ScreenScaffold ( scrollState = listState ){
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -89,14 +100,8 @@ fun SurahListGuessPage(
             )
             .focusRequester(focusRequester)
             .focusable(),
-        contentPadding = PaddingValues(
-            top = 10.dp,
-            start = 10.dp,
-            end = 10.dp,
-            bottom = 40.dp
-        ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        state = listState
+        columnState = listState,
+
     ) {
         items(surahs.size) { index ->
             val curentSurahId = index + 1
@@ -133,10 +138,10 @@ fun SurahListGuessPage(
 @Composable
 fun TextItem(modifier: Modifier, text: String, onClick: () -> Unit) {
     Button(
-        modifier = modifier.padding(4.dp),
+        modifier = modifier.padding(12.dp),
         onClick = onClick
     ) {
-        Text(text = text, style = TextStyle(fontSize = 18.sp), textAlign = TextAlign.Center)
+        Text(text = text, style = TextStyle(fontSize = 16.sp), textAlign = TextAlign.Center)
     }
 }
 
@@ -147,7 +152,7 @@ fun PreviewSurahListGuessPage() {
     // Mocked NavHostController for the preview
     val navController = NavHostController(LocalContext.current).apply {
         navigatorProvider.addNavigator(
-            androidx.navigation.compose.ComposeNavigator()
+            ComposeNavigator()
         )
     }
 

@@ -11,9 +11,9 @@ android {
 
     defaultConfig {
         applicationId = "com.raibbl.ayabelquran"
-        minSdk = 30
-        targetSdk = 35
-        versionCode = 3
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 5
         versionName = "1.0"
         vectorDrawables {
             useSupportLibrary = true
