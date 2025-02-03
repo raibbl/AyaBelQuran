@@ -20,13 +20,16 @@ fun NavigationHost(
 ) {
     val navController = rememberNavController()
 
+
     // Navigation Host
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+        val verseNumber: Int = verseTafsir.optInt("number", -1)
         composable(Screen.MainScreen.route) {
             AyaPage(
                 ayaText = ayaText,
                 onRefresh = onRefresh,
-                navController = navController
+                navController = navController,
+                verseNumber = verseNumber
             )
         }
 
@@ -35,7 +38,8 @@ fun NavigationHost(
         }
 
         composable(Screen.surahListGuessScreen.route) {
-            SurahListGuessPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
+            val surahNumber: Int = verseTafsir.getJSONObject("surah").getInt("number")
+            SurahListGuessPage(surahNumber, navController)
         }
 
         composable("${Screen.surahGuessAnswerScreen.route}/{isCorrect}") { backStackEntry ->
@@ -46,7 +50,7 @@ fun NavigationHost(
         }
 
         composable(Screen.surahAudioPageScreen.route) {
-            SurahAudioPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
+            SurahAudioPage(navController)
         }
 
     }

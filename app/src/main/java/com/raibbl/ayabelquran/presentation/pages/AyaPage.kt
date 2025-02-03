@@ -59,7 +59,8 @@ import kotlinx.coroutines.launch
 fun AyaPage(
     ayaText: String,
     onRefresh: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    verseNumber: Number
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
@@ -70,7 +71,6 @@ fun AyaPage(
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
 
     val columnState = rememberResponsiveColumnState(
         contentPadding = ScalingLazyColumnDefaults.padding(
@@ -113,12 +113,15 @@ fun AyaPage(
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.End // Align everything to the right
                     ) {
-                        Spacer(modifier = Modifier.height(50.dp)) // Push the hint to a fixed vertical position
+                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
+                        AnimatedSwipeHint(direction = "right")
 
-
-                            AnimatedSwipeHint(direction = "right")
+                    }
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
                         AnimatedSwipeHint(direction = "left")
 
                     }
@@ -173,7 +176,19 @@ fun AyaPage(
 
                             Button(
                                 onClick = {
-                                    MediaPlayer.playAudioFromUrl(context)
+                                    val ayahUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3"
+                                    if (!MediaPlayer.isInitializedWithSource(ayahUrl)) {
+                                        MediaPlayer.initializeMediaPlayer(
+                                            url = ayahUrl,
+                                            title = "Aya $verseNumber",
+                                            context = context,
+                                            disableKeepAlive = false
+                                        ) {
+                                            MediaPlayer.playPause(context)
+                                        }
+                                    } else {
+                                        MediaPlayer.playPause(context) // Toggle play/pause if already initialized
+                                    }
                                 }
                             ) {
                                 Icon(

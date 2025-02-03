@@ -1,7 +1,7 @@
 package com.raibbl.ayabelquran.presentation.pages
 
 import MediaPlayer
-import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
@@ -21,22 +22,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
@@ -52,6 +50,7 @@ import com.google.android.horologist.compose.layout.ScalingLazyColumnState
 import com.google.android.horologist.compose.layout.ScreenScaffold
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
 import com.raibbl.ayabelquran.R
+import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 
@@ -59,7 +58,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalWearMaterialApi::class, ExperimentalHorologistApi::class)
 @Composable
 fun SurahAudioPage(
-    surahId: Int,
     navController: NavHostController
 ) {
     val listState = rememberResponsiveColumnState(
@@ -81,6 +79,7 @@ fun SurahAudioPage(
         with(LocalDensity.current) { -400.dp.toPx() } to 1,
     )
     val context = LocalContext.current
+    val activeSurahId = remember { mutableStateOf<Int?>(null) }
     if (swipeableState.currentValue == 1) {
         LaunchedEffect(Unit) {
             navController.navigate(Screen.MainScreen.route) {
@@ -93,6 +92,7 @@ fun SurahAudioPage(
     }
 
     ScreenScaffold(scrollState = listState) {
+        AnimatedSwipeHint(direction = "right")
         ScalingLazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -113,52 +113,82 @@ fun SurahAudioPage(
             columnState = listState,
 
             ) {
+
             items(surahs.size) { index ->
                 val curentSurahId = index + 1
-                SurahPlayItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp),
-                    text = surahs[index],
-                    onClick = {
-                        // Play Audio of Surah
-                        println(curentSurahId)
-                        MediaPlayer.initializeMediaPlayer(
-                            "https://server8.mp3quran.net/download/afs/002.mp3",
-                            surahs[index],
-                            context
-                        ) {
-                            // Callback invoked when MediaPlayer is ready
-                            MediaPlayer.playAudioFromUrl(context)
-                            println("MediaPlayer is ready and playing.")
-                        }
-                    }
-                )
-        }
-        }
+
+
+                    SurahPlayItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp),
+                        currentSurahId = curentSurahId,
+                        text = surahs[index],
+                        context = context,
+                        activeSurahId = activeSurahId // ✅ Pass the shared state
+                    )
+                }
+            }
+
+
     }
 }
 @Composable
 fun SurahPlayItem(
     modifier: Modifier = Modifier,
+    currentSurahId: Int,
     text: String,
-    onClick: ()->Unit
+    context: Context,
+    activeSurahId: MutableState<Int?>
 ) {
-    // State to track whether the button is in the "playing" state
-    var isPlaying by remember { mutableStateOf(false) }
-
+    val surahUrl = "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${currentSurahId}.mp3"
+    val isPlaying = remember { mutableStateOf(false) }
+    val isLoading = remember { mutableStateOf(false) }
     Button(
         modifier = modifier
             .padding(horizontal = 12.dp, vertical = 4.dp)
             .height(50.dp),
         onClick = {
-            isPlaying = !isPlaying // Toggle play/pause state
-            onClick()
+            isPlaying.value = !isPlaying.value
+
+                // Play Audio of Surah
+                println(currentSurahId)
+
+                println(surahUrl)
+                if (!(MediaPlayer.isInitializedWithSource(surahUrl))) {
+                    isLoading.value = true
+                    println("not initialized")
+                    MediaPlayer.initializeMediaPlayer(
+                        surahUrl,
+                       text,
+                        context,
+                        disableKeepAlive = true,
+                        onReady = {
+                            isLoading.value = false
+                            activeSurahId.value=currentSurahId
+                            MediaPlayer.playPause(context)
+                        },
+                        onCompletion = {
+                            isPlaying.value = false
+                        }
+                    )
+
+                } else{
+                    MediaPlayer.playPause(context)
+                }
         }
     ) {
         Icon(
-            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = if (isPlaying) "Pause" else "Play",
+            imageVector = when {
+                isLoading.value -> Icons.Default.HourglassEmpty // ✅ Loading icon
+                isPlaying.value && activeSurahId.value == currentSurahId -> Icons.Filled.Pause // ✅ Show pause if active
+                else -> Icons.Filled.PlayArrow // ✅ Default to play icon
+            },
+            contentDescription = when {
+                isLoading.value -> "Loading"
+                isPlaying.value && activeSurahId.value == currentSurahId -> "Pause"
+                else -> "Play"
+            },
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -182,12 +212,9 @@ fun PreviewSurahAudioPage() {
         )
     }
 
-    // Provide a previewable Surah ID
-    val previewSurahId = 1
 
     // Display the page in the preview
     SurahAudioPage(
-        surahId = previewSurahId,
         navController = navController
     )
 }

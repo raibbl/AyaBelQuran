@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -18,21 +19,27 @@ import com.raibbl.ayabelquran.presentation.MainActivity
 class MediaPlayer {
     companion object {
         private var mediaPlayer: MediaPlayer? = null
+        private var source: String? = null
         private var mediaSession: MediaSessionCompat? = null
         private const val CHANNEL_ID = "ongoing_channel"
         private const val NOTIFICATION_ID = 1
+
 
         // Initialize the MediaPlayer and prepare the audio
         fun initializeMediaPlayer(
             url: String,
             title: String,
             context: Context,
-            onReady: (() -> Unit)? = null // Optional callback for readiness
+            disableKeepAlive: Boolean = false, // ✅ New descriptive parameter
+            onReady: (() -> Unit)? = null, // Optional callback for readiness
+            onCompletion: (() -> Unit)? = null
         ) {
             // Release any existing MediaPlayer instance
             mediaPlayer?.release()
+
             mediaPlayer = null
             println(url)
+
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -41,10 +48,20 @@ class MediaPlayer {
                         .build()
                 )
                 try {
-                    setDataSource(url)
+                    source = url
+
+                    // ✅ Apply headers to disable keep-alive if needed
+                    if (disableKeepAlive) {
+                        val headers = mapOf(
+                            "Connection" to "close",               // Disables keep-alive
+                            "Accept-Encoding" to "identity"        // Prevents gzip compression issues
+                        )
+                        setDataSource(context, Uri.parse(url), headers)
+                    } else {
+                        setDataSource(url) // Default behavior without custom headers
+                    }
 
                     setOnPreparedListener {
-                        // MediaPlayer is ready
                         mediaSession = MediaSessionCompat(context, "MediaSessionTag").apply {
                             setCallback(object : MediaSessionCompat.Callback() {
                                 override fun onPlay() {
@@ -55,6 +72,7 @@ class MediaPlayer {
 
                                 override fun onPause() {
                                     mediaPlayer?.pause()
+                                    onCompletion?.invoke()
                                     updatePlaybackState(PlaybackStateCompat.STATE_PAUSED)
                                     showNotification(context, title, "Paused")
                                 }
@@ -68,22 +86,21 @@ class MediaPlayer {
                             )
                         }
 
-                        updatePlaybackState(PlaybackStateCompat.STATE_PAUSED) // Initial state
+                        updatePlaybackState(PlaybackStateCompat.STATE_PAUSED)
                         showNotification(context, title, "Ready to Play")
 
-                        // Invoke the optional onReady callback
-                        onReady?.invoke()
+                        onReady?.invoke() // Notify when ready
                     }
 
-                    setOnErrorListener { mp, what, extra ->
+                    setOnErrorListener { _, what, extra ->
                         println("MediaPlayer Error: what=$what, extra=$extra")
                         releaseMediaPlayer(context)
-                        true // Indicate error was handled
+                        true
                     }
 
                     setOnCompletionListener {
-                        // Release resources when playback completes
                         releaseMediaPlayer(context)
+                        onCompletion?.invoke()
                     }
 
                     prepareAsync()
@@ -93,6 +110,7 @@ class MediaPlayer {
                 }
             }
         }
+
 
         // Update playback state
         private fun updatePlaybackState(state: Int) {
@@ -173,7 +191,7 @@ class MediaPlayer {
         }
 
         // Play or pause the audio
-        fun playAudioFromUrl(context: Context) {
+        fun playPause(context: Context) {
             val currentTitle =
                 mediaSession?.controller?.metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
                     ?: "Unknown Title"
@@ -188,5 +206,10 @@ class MediaPlayer {
                 showNotification(context, currentTitle, "Paused")
             }
         }
+
+        fun isInitializedWithSource(source: String): Boolean {
+            return mediaPlayer != null && this.source == source
+        }
+
     }
 }
