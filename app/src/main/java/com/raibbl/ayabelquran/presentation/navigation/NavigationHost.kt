@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.raibbl.ayabelquran.presentation.pages.AyaPage
+import com.raibbl.ayabelquran.presentation.pages.SurahAudioPage
 import com.raibbl.ayabelquran.presentation.pages.SurahGuessAnswerPage
 import com.raibbl.ayabelquran.presentation.pages.SurahListGuessPage
 import com.raibbl.ayabelquran.presentation.pages.TafsirPage
@@ -42,6 +43,10 @@ fun NavigationHost(
             val isCorrect = isCorrectString.toBoolean()
 
             SurahGuessAnswerPage(isCorrect,navController)
+        }
+
+        composable(Screen.surahAudioPageScreen.route) {
+            SurahAudioPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
         }
 
     }

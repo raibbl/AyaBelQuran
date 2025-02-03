@@ -64,7 +64,8 @@ fun AyaPage(
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
         0f to 0,
-        with(LocalDensity.current) { -400.dp.toPx() } to 1
+        with(LocalDensity.current) { -400.dp.toPx() } to 1,
+        with(LocalDensity.current) { 400.dp.toPx() } to -1
     )
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
@@ -104,6 +105,12 @@ fun AyaPage(
                         }
                     }
 
+                    if (swipeableState.currentValue == -1) {
+                        LaunchedEffect(Unit) {
+                            navController.navigate(Screen.surahAudioPageScreen.route)
+                        }
+                    }
+
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.End // Align everything to the right
@@ -112,6 +119,7 @@ fun AyaPage(
 
 
                             AnimatedSwipeHint(direction = "right")
+                        AnimatedSwipeHint(direction = "left")
 
                     }
 

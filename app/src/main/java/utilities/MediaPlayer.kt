@@ -23,9 +23,16 @@ class MediaPlayer {
         private const val NOTIFICATION_ID = 1
 
         // Initialize the MediaPlayer and prepare the audio
-        fun initializeMediaPlayer(url: String, title: String, context: Context) {
+        fun initializeMediaPlayer(
+            url: String,
+            title: String,
+            context: Context,
+            onReady: (() -> Unit)? = null // Optional callback for readiness
+        ) {
+            // Release any existing MediaPlayer instance
             mediaPlayer?.release()
-
+            mediaPlayer = null
+            println(url)
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -33,34 +40,56 @@ class MediaPlayer {
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .build()
                 )
-                setDataSource(url)
-                prepareAsync()
-                setOnPreparedListener {
-                    mediaSession = MediaSessionCompat(context, "MediaSessionTag").apply {
-                        setCallback(object : MediaSessionCompat.Callback() {
-                            override fun onPlay() {
-                                mediaPlayer?.start()
-                                updatePlaybackState(PlaybackStateCompat.STATE_PLAYING)
-                                showNotification(context, title, "Playing")
-                            }
+                try {
+                    setDataSource(url)
 
-                            override fun onPause() {
-                                mediaPlayer?.pause()
-                                updatePlaybackState(PlaybackStateCompat.STATE_PAUSED)
-                                showNotification(context, title, "Paused")
-                            }
-                        })
-                        isActive = true
+                    setOnPreparedListener {
+                        // MediaPlayer is ready
+                        mediaSession = MediaSessionCompat(context, "MediaSessionTag").apply {
+                            setCallback(object : MediaSessionCompat.Callback() {
+                                override fun onPlay() {
+                                    mediaPlayer?.start()
+                                    updatePlaybackState(PlaybackStateCompat.STATE_PLAYING)
+                                    showNotification(context, title, "Playing")
+                                }
 
-                        // Set media metadata
-                        setMetadata(
-                            MediaMetadataCompat.Builder()
-                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                                .build()
-                        )
+                                override fun onPause() {
+                                    mediaPlayer?.pause()
+                                    updatePlaybackState(PlaybackStateCompat.STATE_PAUSED)
+                                    showNotification(context, title, "Paused")
+                                }
+                            })
+                            isActive = true
+
+                            setMetadata(
+                                MediaMetadataCompat.Builder()
+                                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                                    .build()
+                            )
+                        }
+
+                        updatePlaybackState(PlaybackStateCompat.STATE_PAUSED) // Initial state
+                        showNotification(context, title, "Ready to Play")
+
+                        // Invoke the optional onReady callback
+                        onReady?.invoke()
                     }
-                    updatePlaybackState(PlaybackStateCompat.STATE_PAUSED) // Initial state
-                    showNotification(context, title, "Ready to Play")
+
+                    setOnErrorListener { mp, what, extra ->
+                        println("MediaPlayer Error: what=$what, extra=$extra")
+                        releaseMediaPlayer(context)
+                        true // Indicate error was handled
+                    }
+
+                    setOnCompletionListener {
+                        // Release resources when playback completes
+                        releaseMediaPlayer(context)
+                    }
+
+                    prepareAsync()
+                } catch (e: Exception) {
+                    println("MediaPlayer Initialization Error: ${e.message}")
+                    releaseMediaPlayer(context)
                 }
             }
         }

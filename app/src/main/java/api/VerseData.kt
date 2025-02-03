@@ -49,7 +49,7 @@ class VerseData {
                                 "fetchVerseData",
                                 "Verse number: $verseNum, Verse text: $verseText"
                             )
-                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/64/ar.alafasy/${generatedVerseNumber}.mp3",
+                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/128/ar.alafasy/${generatedVerseNumber}.mp3",
                                 title,context)
                         } catch (e: Exception) {
                             responseString.value = "Error parsing data!"
