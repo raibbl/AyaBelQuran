@@ -44,13 +44,13 @@ class VerseData {
                             responseString.value = verseText
                             verseNumber.value = verseNum
                             val title = "Surah $surahName, Verse $verseInSurah"
+                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/128/ar.alafasy/${generatedVerseNumber}.mp3",
+                                title,context)
                             // Debugging log
                             Log.d(
                                 "fetchVerseData",
                                 "Verse number: $verseNum, Verse text: $verseText"
                             )
-                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/64/ar.alafasy/${generatedVerseNumber}.mp3",
-                                title,context)
                         } catch (e: Exception) {
                             responseString.value = "Error parsing data!"
                             Log.e("fetchVerseData", "Error: ${e.message}")

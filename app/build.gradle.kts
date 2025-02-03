@@ -13,8 +13,8 @@ android {
         applicationId = "com.raibbl.ayabelquran"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.0"
+        versionCode = 8
+        versionName = "1.5"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -64,7 +64,8 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation ("androidx.core:core-ktx:1.15.0") // For NotificationCompat
     implementation ("androidx.wear:wear-ongoing:1.0.0")
-    implementation ("androidx.media:media:1.6.0") // For MediaSession
+    implementation ("androidx.media:media:1.6.0")
+    implementation("androidx.media3:media3-exoplayer:1.5.1") // For MediaSession
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")

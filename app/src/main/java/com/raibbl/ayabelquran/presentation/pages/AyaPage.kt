@@ -59,17 +59,18 @@ import kotlinx.coroutines.launch
 fun AyaPage(
     ayaText: String,
     onRefresh: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    verseNumber: Number
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
         0f to 0,
-        with(LocalDensity.current) { -400.dp.toPx() } to 1
+        with(LocalDensity.current) { -400.dp.toPx() } to 1,
+        with(LocalDensity.current) { 400.dp.toPx() } to -1
     )
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
 
     val columnState = rememberResponsiveColumnState(
         contentPadding = ScalingLazyColumnDefaults.padding(
@@ -104,14 +105,24 @@ fun AyaPage(
                         }
                     }
 
+                    if (swipeableState.currentValue == -1) {
+                        LaunchedEffect(Unit) {
+                            navController.navigate(Screen.surahAudioPageScreen.route)
+                        }
+                    }
+
                     Column(
                         modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.End // Align everything to the right
                     ) {
-                        Spacer(modifier = Modifier.height(50.dp)) // Push the hint to a fixed vertical position
+                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
+                        AnimatedSwipeHint(direction = "right")
 
-
-                            AnimatedSwipeHint(direction = "right")
+                    }
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
+                        AnimatedSwipeHint(direction = "left")
 
                     }
 
@@ -165,7 +176,19 @@ fun AyaPage(
 
                             Button(
                                 onClick = {
-                                    MediaPlayer.playAudioFromUrl(context)
+                                    val ayahUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3"
+                                    if (!MediaPlayer.isInitializedWithSource(ayahUrl)) {
+                                        MediaPlayer.initializeMediaPlayer(
+                                            url = ayahUrl,
+                                            title = "Aya $verseNumber",
+                                            context = context,
+                                            onReady = {
+                                                MediaPlayer.playPause(context)
+                                            }
+                                        )
+                                    } else {
+                                        MediaPlayer.playPause(context) // Toggle play/pause if already initialized
+                                    }
                                 }
                             ) {
                                 Icon(

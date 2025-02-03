@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.raibbl.ayabelquran.presentation.pages.AyaPage
+import com.raibbl.ayabelquran.presentation.pages.SurahAudioPage
 import com.raibbl.ayabelquran.presentation.pages.SurahGuessAnswerPage
 import com.raibbl.ayabelquran.presentation.pages.SurahListGuessPage
 import com.raibbl.ayabelquran.presentation.pages.TafsirPage
@@ -19,13 +20,16 @@ fun NavigationHost(
 ) {
     val navController = rememberNavController()
 
+
     // Navigation Host
     NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+        val verseNumber: Int = verseTafsir.optInt("number", -1)
         composable(Screen.MainScreen.route) {
             AyaPage(
                 ayaText = ayaText,
                 onRefresh = onRefresh,
-                navController = navController
+                navController = navController,
+                verseNumber = verseNumber
             )
         }
 
@@ -34,7 +38,8 @@ fun NavigationHost(
         }
 
         composable(Screen.surahListGuessScreen.route) {
-            SurahListGuessPage(verseTafsir.getJSONObject("surah").getInt("number"), navController)
+            val surahNumber: Int = verseTafsir.getJSONObject("surah").getInt("number")
+            SurahListGuessPage(surahNumber, navController)
         }
 
         composable("${Screen.surahGuessAnswerScreen.route}/{isCorrect}") { backStackEntry ->
@@ -42,6 +47,10 @@ fun NavigationHost(
             val isCorrect = isCorrectString.toBoolean()
 
             SurahGuessAnswerPage(isCorrect,navController)
+        }
+
+        composable(Screen.surahAudioPageScreen.route) {
+            SurahAudioPage(navController)
         }
 
     }
