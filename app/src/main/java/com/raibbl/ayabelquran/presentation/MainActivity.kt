@@ -1,6 +1,7 @@
 package com.raibbl.ayabelquran.presentation
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +16,7 @@ class MainActivity : ComponentActivity() {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
     override fun onDestroy() {
         super.onDestroy()
-        MediaPlayer.releaseMediaPlayer(this)
+        MediaPlayer.releasePlayer(this)
     }
 
     @SuppressLint("SetTextI18n")
@@ -41,6 +42,10 @@ class MainActivity : ComponentActivity() {
             )
 
         }
+    }
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        // Handle the incoming intent if needed
     }
 }
 

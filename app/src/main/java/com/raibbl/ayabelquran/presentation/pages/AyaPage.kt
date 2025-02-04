@@ -182,10 +182,10 @@ fun AyaPage(
                                             url = ayahUrl,
                                             title = "Aya $verseNumber",
                                             context = context,
-                                            disableKeepAlive = false
-                                        ) {
-                                            MediaPlayer.playPause(context)
-                                        }
+                                            onReady = {
+                                                MediaPlayer.playPause(context)
+                                            }
+                                        )
                                     } else {
                                         MediaPlayer.playPause(context) // Toggle play/pause if already initialized
                                     }

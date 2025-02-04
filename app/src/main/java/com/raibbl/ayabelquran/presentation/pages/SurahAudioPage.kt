@@ -114,10 +114,9 @@ fun SurahAudioPage(
 
             ) {
 
+
             items(surahs.size) { index ->
                 val curentSurahId = index + 1
-
-
                     SurahPlayItem(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -125,7 +124,7 @@ fun SurahAudioPage(
                         currentSurahId = curentSurahId,
                         text = surahs[index],
                         context = context,
-                        activeSurahId = activeSurahId // ✅ Pass the shared state
+                        activeSurahId = activeSurahId
                     )
                 }
             }
@@ -150,32 +149,26 @@ fun SurahPlayItem(
             .height(50.dp),
         onClick = {
             isPlaying.value = !isPlaying.value
+            if (!(MediaPlayer.isInitializedWithSource(surahUrl))) {
+                isLoading.value = true
+                println("not initialized")
+                MediaPlayer.initializeMediaPlayer(
+                    surahUrl,
+                   text,
+                    context,
+                    onReady = {
+                        isLoading.value = false
+                        activeSurahId.value=currentSurahId
+                        MediaPlayer.playPause(context)
+                    },
+                    onCompletion = {
+                        isPlaying.value = false
+                    }
+                )
 
-                // Play Audio of Surah
-                println(currentSurahId)
-
-                println(surahUrl)
-                if (!(MediaPlayer.isInitializedWithSource(surahUrl))) {
-                    isLoading.value = true
-                    println("not initialized")
-                    MediaPlayer.initializeMediaPlayer(
-                        surahUrl,
-                       text,
-                        context,
-                        disableKeepAlive = true,
-                        onReady = {
-                            isLoading.value = false
-                            activeSurahId.value=currentSurahId
-                            MediaPlayer.playPause(context)
-                        },
-                        onCompletion = {
-                            isPlaying.value = false
-                        }
-                    )
-
-                } else{
-                    MediaPlayer.playPause(context)
-                }
+            } else{
+                MediaPlayer.playPause(context)
+            }
         }
     ) {
         Icon(
