@@ -44,6 +44,8 @@ class VerseData {
                             responseString.value = verseText
                             verseNumber.value = verseNum
                             val title = "Surah $surahName, Verse $verseInSurah"
+                            MediaPlayer.initializeMediaPlayer("https://cdn.islamic.network/quran/audio/128/ar.alafasy/${generatedVerseNumber}.mp3",
+                                title,context)
                             // Debugging log
                             Log.d(
                                 "fetchVerseData",
