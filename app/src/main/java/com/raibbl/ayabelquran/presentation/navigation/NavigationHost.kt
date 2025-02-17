@@ -38,7 +38,7 @@ fun NavigationHost(
         }
 
         composable(Screen.surahListGuessScreen.route) {
-            val surahNumber: Int = verseTafsir.getJSONObject("surah").getInt("number")
+            val surahNumber: Int = verseTafsir.getJSONObject("surah").optInt("number",0)
             SurahListGuessPage(surahNumber, navController)
         }
 
