@@ -66,6 +66,10 @@ dependencies {
     implementation ("androidx.wear:wear-ongoing:1.0.0")
     implementation ("androidx.media:media:1.6.0")
     implementation("androidx.media3:media3-exoplayer:1.5.1") // For MediaSession
+    //  Add MediaSession for controlling playback
+    implementation ("androidx.media3:media3-session:1.5.1")
+    //  Notification support for ExoPlayer
+    implementation ("androidx.media3:media3-ui:1.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
