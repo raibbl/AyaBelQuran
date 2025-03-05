@@ -71,8 +71,7 @@ class MediaPlayer {
             onStopped: (() -> Unit)? = null
         ) {
             releasePlayer(context)
-            currentSource = "playListSource"
-
+            currentSource = title
             val mediaItemsWithMetadata = mediaItems.map { mediaItem ->
                 MediaItem.Builder()
                     .setUri(mediaItem.localConfiguration!!.uri)

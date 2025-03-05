@@ -150,7 +150,7 @@ fun SurahPlayItem(
             .height(50.dp),
         onClick = {
             isPlaying.value = !isPlaying.value
-            if (activeSurahId.value != currentSurahId) {
+            if (!MediaPlayer.isInitializedWithSource(text)) {
                 isLoading.value = true
                 println("Fetching Ayahs for Surah $currentSurahId")
 
