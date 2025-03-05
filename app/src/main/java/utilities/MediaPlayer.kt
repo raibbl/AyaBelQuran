@@ -85,6 +85,34 @@ class MediaPlayer {
             })
         }
 
+        fun initializePlaylist(
+            mediaItems: List<MediaItem>,
+            title: String,
+            context: Context,
+            onStopped: (() -> Unit)? = null // ✅ Callback when playback stops
+        ) {
+            releasePlayer(context) // ✅ Clear previous playback
+            currentSource = "playListSource"
+
+            exoPlayer = ExoPlayer.Builder(context).build().apply {
+                setMediaItems(mediaItems) // ✅ Queue all Ayahs
+                prepare()
+                playWhenReady = true // ✅ Start playing immediately
+
+                // ✅ Detect when playback stops
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_ENDED) {
+                            println("Playlist finished")
+                            onStopped?.invoke() // ✅ Trigger UI update when stopped
+                        }
+                    }
+                })
+            }
+
+            showNotification(context, title, "Playing Surah")
+        }
+
 
         // Show the notification with OngoingActivity API integration
         @OptIn(UnstableApi::class)

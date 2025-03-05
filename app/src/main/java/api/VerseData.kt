@@ -86,5 +86,49 @@ class VerseData {
                 queue.add(verseTafsirRequest)
             }
         }
+
+        /**
+         * Fetches all Ayahs from a Surah and returns them as a list of (text, audio URL).
+         */
+        fun fetchSurahAyahs(
+            context: Context,
+            surahId: Int,
+            onComplete: (List<Pair<String, String>>?) -> Unit
+        ) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val queue = Volley.newRequestQueue(context)
+                val surahRequestUrl = "https://api.alquran.cloud/v1/surah/$surahId/ar.alafasy"
+
+                val surahRequest = StringRequest(
+                    Request.Method.GET, surahRequestUrl,
+                    { response ->
+                        try {
+                            val obj = JSONObject(response)
+                            val ayahs = obj.getJSONObject("data").getJSONArray("ayahs")
+
+                            val ayahList = mutableListOf<Pair<String, String>>() // (text, audio)
+                            for (i in 0 until ayahs.length()) {
+                                val ayahObj = ayahs.getJSONObject(i)
+                                val ayahText = ayahObj.getString("text")
+                                val ayahAudio = ayahObj.getString("audio")
+                                ayahList.add(Pair(ayahText, ayahAudio))
+                            }
+
+                            onComplete(ayahList) // ✅ Pass result back
+                            Log.d("fetchSurahAyahs", "Fetched ${ayahList.size} ayahs for Surah $surahId")
+                        } catch (e: Exception) {
+                            Log.e("fetchSurahAyahs", "Error parsing data: ${e.message}")
+                            onComplete(null) // ✅ Return null if error
+                        }
+                    },
+                    {
+                        Log.e("fetchSurahAyahs", "Request failed for Surah $surahId")
+                        onComplete(null) // ✅ Return null if request fails
+                    }
+                )
+
+                queue.add(surahRequest)
+            }
+        }
     }
 }

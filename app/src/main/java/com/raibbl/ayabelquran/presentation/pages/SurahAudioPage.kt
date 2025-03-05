@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
@@ -43,6 +44,7 @@ import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import api.VerseData
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
 import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
@@ -140,7 +142,7 @@ fun SurahPlayItem(
     context: Context,
     activeSurahId: MutableState<Int?>
 ) {
-    val surahUrl = "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${currentSurahId}.mp3"
+    val surahUrl = "https://cdn.islamic.network/quran/audio/64/ar.alafasy/262.mp3"
     val isPlaying = remember { mutableStateOf(false) }
     val isLoading = remember { mutableStateOf(false) }
     Button(
@@ -149,25 +151,43 @@ fun SurahPlayItem(
             .height(50.dp),
         onClick = {
             isPlaying.value = !isPlaying.value
-            if (!(MediaPlayer.isInitializedWithSource(surahUrl))) {
+            if (activeSurahId.value != currentSurahId) {
                 isLoading.value = true
-                println("not initialized")
-                MediaPlayer.initializeMediaPlayer(
-                    surahUrl,
-                   text,
-                    context,
-                    onReady = {
-                        isLoading.value = false
-                        activeSurahId.value=currentSurahId
-                        MediaPlayer.playPause(context)
-                    },
-                    onCompletion = {
-                        isPlaying.value = false
-                    }
-                )
+                println("Fetching Ayahs for Surah $currentSurahId")
 
-            } else{
+                // ✅ Fetch all Ayahs for the selected Surah
+                VerseData.fetchSurahAyahs(
+                    context = context,
+                    surahId = currentSurahId
+                ) { ayahList ->
+                    isLoading.value = false
+                    if (!ayahList.isNullOrEmpty()) {
+                        activeSurahId.value = currentSurahId //  Mark Surah as active
+
+                        // Convert Ayah URLs into MediaItems for ExoPlayer
+                        val mediaItems = ayahList.map { ayah ->
+                            MediaItem.fromUri(ayah.second) // Ayah audio URL
+                        }
+
+                        // Initialize ExoPlayer with the entire Surah
+                        MediaPlayer.initializePlaylist(
+                            mediaItems,
+                            title =text,
+                            context = context,
+                            onStopped = {
+                                isPlaying.value = false
+                                activeSurahId.value = null
+                            }
+                        )
+                        isPlaying.value = true
+                    } else {
+                        println("Failed to fetch Ayahs")
+                    }
+                }
+            } else {
+                // Toggle Play/Pause if the Surah is already loaded
                 MediaPlayer.playPause(context)
+                isPlaying.value = !isPlaying.value
             }
         }
     ) {
