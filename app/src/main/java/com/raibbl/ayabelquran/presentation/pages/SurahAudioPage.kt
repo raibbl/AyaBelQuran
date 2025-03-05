@@ -142,7 +142,6 @@ fun SurahPlayItem(
     context: Context,
     activeSurahId: MutableState<Int?>
 ) {
-    val surahUrl = "https://cdn.islamic.network/quran/audio/64/ar.alafasy/262.mp3"
     val isPlaying = remember { mutableStateOf(false) }
     val isLoading = remember { mutableStateOf(false) }
     Button(
@@ -187,7 +186,7 @@ fun SurahPlayItem(
             } else {
                 // Toggle Play/Pause if the Surah is already loaded
                 MediaPlayer.playPause(context)
-                isPlaying.value = !isPlaying.value
+
             }
         }
     ) {

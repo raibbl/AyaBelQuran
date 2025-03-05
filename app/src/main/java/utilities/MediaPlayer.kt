@@ -11,6 +11,7 @@ import androidx.media.app.NotificationCompat.MediaStyle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -37,14 +38,19 @@ class MediaPlayer {
         ) {
             releasePlayer(context)
 
+            val mediaMetadata = MediaMetadata.Builder().setTitle(title).build()
             // Step 1: Create ExoPlayer instance
             exoPlayer = ExoPlayer.Builder(context).build().apply {
-                val mediaItem = MediaItem.fromUri(Uri.parse(url))
+                val mediaItem = MediaItem.Builder()
+                    .setUri(Uri.parse(url))
+                    .setMediaMetadata(mediaMetadata)
+                    .build()
                 val audioAttributes = AudioAttributes.Builder()
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                     .setUsage(C.USAGE_MEDIA)
                     .build()
                 currentSource = url
+
 
                 setMediaItem(mediaItem)
                 setAudioAttributes(audioAttributes, true)
@@ -55,51 +61,34 @@ class MediaPlayer {
             mediaSession = MediaSession.Builder(context, exoPlayer!!).build()
 
             // Step 3: Attach a Player.Listener to update UI & state
-            exoPlayer!!.addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    when (playbackState) {
-                        Player.STATE_READY -> {
-                            onReady?.invoke()
-                            showNotification(context, title, "Playing")
-                        }
-
-                        Player.STATE_ENDED -> {
-                            onCompletion?.invoke()
-                            releasePlayer(context)
-                        }
-
-                        Player.STATE_BUFFERING -> {
-                            showNotification(context, title, "Buffering ⏳")
-                        }
-
-                        Player.STATE_IDLE -> {
-                            showNotification(context, title, "Paused ⏸️")
-                        }
-                    }
-                }
-
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    val state = if (isPlaying) "Playing" else "Paused"
-                    showNotification(context, title, state)
-                }
-            })
+            attachPlayerListener(title, context, onReady, onCompletion)
         }
 
         fun initializePlaylist(
             mediaItems: List<MediaItem>,
             title: String,
             context: Context,
-            onStopped: (() -> Unit)? = null // ✅ Callback when playback stops
+            onStopped: (() -> Unit)? = null
         ) {
-            releasePlayer(context) // ✅ Clear previous playback
+            releasePlayer(context)
             currentSource = "playListSource"
 
-            exoPlayer = ExoPlayer.Builder(context).build().apply {
-                setMediaItems(mediaItems) // ✅ Queue all Ayahs
-                prepare()
-                playWhenReady = true // ✅ Start playing immediately
+            val mediaItemsWithMetadata = mediaItems.map { mediaItem ->
+                MediaItem.Builder()
+                    .setUri(mediaItem.localConfiguration!!.uri)
+                    .setMediaMetadata(
+                     MediaMetadata.Builder()
+                            .setTitle(title)
+                            .build()
+                    )
+                    .build()
+            }
 
-                // ✅ Detect when playback stops
+            exoPlayer = ExoPlayer.Builder(context).build().apply {
+                setMediaItems(mediaItemsWithMetadata)
+                prepare()
+                playWhenReady = true
+                repeatMode = Player.REPEAT_MODE_OFF
                 addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         if (playbackState == Player.STATE_ENDED) {
@@ -109,8 +98,9 @@ class MediaPlayer {
                     }
                 })
             }
+            mediaSession = MediaSession.Builder(context, exoPlayer!!).build()
+            attachPlayerListener(title, context, onReady = null, onCompletion = onStopped)
 
-            showNotification(context, title, "Playing Surah")
         }
 
 
@@ -196,6 +186,39 @@ class MediaPlayer {
             exoPlayer = null
             mediaSession?.release()
             mediaSession = null
+        }
+
+        private fun attachPlayerListener(
+            title: String,
+            context: Context,
+            onReady: (() -> Unit)? = null,
+            onCompletion: (() -> Unit)? = null
+        ) {
+            exoPlayer?.addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    when (playbackState) {
+                        Player.STATE_READY -> {
+                            onReady?.invoke()
+                            showNotification(context, title, "Playing")
+                        }
+                        Player.STATE_ENDED -> {
+                            onCompletion?.invoke()
+                            releasePlayer(context)
+                        }
+                        Player.STATE_BUFFERING -> {
+                            showNotification(context, title, "Buffering ⏳")
+                        }
+                        Player.STATE_IDLE -> {
+                            showNotification(context, title, "Paused ⏸️")
+                        }
+                    }
+                }
+
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    val state = if (isPlaying) "Playing" else "Paused"
+                    showNotification(context, title, state)
+                }
+            })
         }
 
 
