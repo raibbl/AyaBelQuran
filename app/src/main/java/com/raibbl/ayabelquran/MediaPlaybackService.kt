@@ -19,7 +19,7 @@ class MediaPlaybackService : Service() {
     private var exoPlayer: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
     private var currentSource: String? = null
-    private var isPlaying = false // ✅ Track play/pause state
+    private var isPlaying = false //  Track play/pause state
 
     private val CHANNEL_ID = "ongoing_channel"
     private val NOTIFICATION_ID = 1
@@ -29,27 +29,27 @@ class MediaPlaybackService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
         val title = intent?.getStringExtra("TITLE") ?: "Quran Audio"
-        val ayahUrl = intent?.getStringExtra("URL") // ✅ Single verse support
-        val playlist = intent?.getStringArrayListExtra("PLAYLIST") // ✅ Multi-verse support
+        val ayahUrl = intent?.getStringExtra("URL") //  Single verse support
+        val playlist = intent?.getStringArrayListExtra("PLAYLIST") //  Multi-verse support
 
-        // ✅ Ensure startForeground() is always called
+        //  Ensure startForeground() is always called
         startForeground(NOTIFICATION_ID, buildNotification(this, title, "Loading..."))
 
         when (action) {
             "PLAY" -> {
                 if (ayahUrl != null) {
                     if (currentSource == ayahUrl) {
-                        // ✅ If the same verse is playing, toggle play/pause instead of restarting
+                        //  If the same verse is playing, toggle play/pause instead of restarting
                         playPause()
                     } else {
                         currentSource = ayahUrl
-                        initializeMediaPlayer(ayahUrl, title, this) // ✅ Start new playback
+                        initializeMediaPlayer(ayahUrl, title, this) //  Start new playback
                     }
                 } else if (!playlist.isNullOrEmpty()) {
-                    initializePlaylist(playlist, title, this) // ✅ Full surah playback
+                    initializePlaylist(playlist, title, this) //  Full surah playback
                 }
             }
-            "TOGGLE_PLAY" -> playPause() // ✅ Toggle play/pause
+            "TOGGLE_PLAY" -> playPause() //  Toggle play/pause
             "STOP" -> stopSelf()
         }
 
@@ -59,7 +59,7 @@ class MediaPlaybackService : Service() {
     private fun initializeMediaPlayer(url: String, title: String, context: Context) {
         releasePlayer() // Clear previous player instance
 
-        currentSource = title // ✅ Store the correct title for notifications
+        currentSource = title //  Store the correct title for notifications
 
         val mediaMetadata = MediaMetadata.Builder().setTitle(title).build()
 
@@ -77,19 +77,19 @@ class MediaPlaybackService : Service() {
             setMediaItem(mediaItem)
             setAudioAttributes(audioAttributes, true)
             prepare()
-            play() // ✅ Start playback automatically
+            play() //  Start playback automatically
             this@MediaPlaybackService.isPlaying = true
         }
 
         mediaSession = MediaSession.Builder(context, exoPlayer!!).build()
-        attachPlayerListener(title, context)
+        attachPlayerListener()
 
         startForeground(NOTIFICATION_ID, buildNotification(context, title, "Playing"))
     }
 
 
 
-    // ✅ Initialize a Playlist (Full Surah Playback)
+    //  Initialize a Playlist (Full Surah Playback)
     private fun initializePlaylist(ayahUrls: List<String>, surahTitle: String, context: Context) {
         releasePlayer()
 
@@ -98,11 +98,11 @@ class MediaPlaybackService : Service() {
             return
         }
 
-        currentSource = surahTitle // ✅ Store the Surah title
+        currentSource = surahTitle //  Store the Surah title
 
         val mediaItems = ayahUrls.map { url ->
             MediaItem.Builder().setUri(Uri.parse(url))
-                .setMediaMetadata(MediaMetadata.Builder().setTitle(surahTitle).build()) // ✅ Set Surah title
+                .setMediaMetadata(MediaMetadata.Builder().setTitle(surahTitle).build()) //  Set Surah title
                 .build()
         }
 
@@ -114,9 +114,9 @@ class MediaPlaybackService : Service() {
         }
 
         mediaSession = MediaSession.Builder(context, exoPlayer!!).build()
-        attachPlayerListener(surahTitle, context)
+        attachPlayerListener()
 
-        // ✅ Start foreground with the Surah title
+        //  Start foreground with the Surah title
         startForeground(NOTIFICATION_ID, buildNotification(context, surahTitle, "Playing"))
     }
 
@@ -163,7 +163,7 @@ class MediaPlaybackService : Service() {
                 MediaStyle().setMediaSession(mediaSession?.sessionCompatToken)
             )
 
-        // ✅ Add Wear OS Ongoing Activity
+        //  Add Wear OS Ongoing Activity
         val ongoingActivityStatus = androidx.wear.ongoing.Status.Builder()
             .addTemplate(description)
             .addPart("title", androidx.wear.ongoing.Status.TextPart(title))
@@ -183,7 +183,7 @@ class MediaPlaybackService : Service() {
     }
 
     private fun updateNotification(description: String) {
-        val title = currentSource ?: "Quran Audio" // ✅ Keep the currently playing title
+        val title = currentSource ?: "Quran Audio" //  Keep the currently playing title
         val notification = buildNotification(this, title, description)
         startForeground(NOTIFICATION_ID, notification)
     }
@@ -197,7 +197,7 @@ class MediaPlaybackService : Service() {
         isPlaying = false
     }
 
-    private fun attachPlayerListener(title: String, context: Context) {
+    private fun attachPlayerListener() {
         exoPlayer?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {

@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
@@ -52,9 +51,8 @@ import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 
 
-
 @OptIn(
-    ExperimentalWearMaterialApi::class, ExperimentalWearFoundationApi::class,
+    ExperimentalWearMaterialApi::class,
     ExperimentalHorologistApi::class
 )
 @Composable

@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -38,7 +37,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
@@ -96,12 +94,12 @@ fun SurahPlayItem(
             if (activeSurahId.value != currentSurahId) {
                 isLoading.value = true
 
-                // ✅ Fetch and play Surah
+                //  Fetch and play Surah
                 VerseData.fetchSurahAyahs(context, currentSurahId) { ayahList ->
                     isLoading.value = false
                     if (!ayahList.isNullOrEmpty()) {
                         activeSurahId.value = currentSurahId
-                        isPlaying.value = true // ✅ Mark as playing
+                        isPlaying.value = true //  Mark as playing
 
                         val ayahUrls = ayahList.map { it.second }
                         val intent = Intent(context, MediaPlaybackService::class.java).apply {
@@ -115,7 +113,7 @@ fun SurahPlayItem(
                     }
                 }
             } else {
-                // ✅ Toggle play/pause without losing state
+                //  Toggle play/pause without losing state
                 isPlaying.value = !isPlaying.value
                 val toggleIntent = Intent(context, MediaPlaybackService::class.java).apply {
                     action = "TOGGLE_PLAY"

@@ -114,16 +114,16 @@ class VerseData {
                                 ayahList.add(Pair(ayahText, ayahAudio))
                             }
 
-                            onComplete(ayahList) // ✅ Pass result back
+                            onComplete(ayahList) //  Pass result back
                             Log.d("fetchSurahAyahs", "Fetched ${ayahList.size} ayahs for Surah $surahId")
                         } catch (e: Exception) {
                             Log.e("fetchSurahAyahs", "Error parsing data: ${e.message}")
-                            onComplete(null) // ✅ Return null if error
+                            onComplete(null) //  Return null if error
                         }
                     },
                     {
                         Log.e("fetchSurahAyahs", "Request failed for Surah $surahId")
-                        onComplete(null) // ✅ Return null if request fails
+                        onComplete(null) //  Return null if request fails
                     }
                 )
 
