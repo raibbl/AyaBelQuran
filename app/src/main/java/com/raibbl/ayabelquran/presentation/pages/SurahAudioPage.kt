@@ -1,7 +1,9 @@
 package com.raibbl.ayabelquran.presentation.pages
 
-import MediaPlayer
+
+
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
@@ -51,6 +53,7 @@ import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
 import com.google.android.horologist.compose.layout.ScalingLazyColumnState
 import com.google.android.horologist.compose.layout.ScreenScaffold
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
+import com.raibbl.ayabelquran.MediaPlaybackService
 import com.raibbl.ayabelquran.R
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
@@ -78,7 +81,7 @@ fun SurahAudioPage(
     val coroutineScope = rememberCoroutineScope()
     val anchors = mapOf(
         0f to 0,
-        with(LocalDensity.current) { -400.dp.toPx() } to 1,
+        with(LocalDensity.current) { -200.dp.toPx() } to 1,
     )
     val context = LocalContext.current
     val activeSurahId = remember { mutableStateOf<Int?>(null) }
@@ -107,7 +110,7 @@ fun SurahAudioPage(
                 .swipeable(
                     state = swipeableState,
                     anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                    thresholds = { _, _ -> FractionalThreshold(0.1f) }, // 🔥 Low
                     orientation = Orientation.Horizontal
                 )
                 .focusRequester(focusRequester)
@@ -150,7 +153,8 @@ fun SurahPlayItem(
             .height(50.dp),
         onClick = {
             isPlaying.value = !isPlaying.value
-            if (!MediaPlayer.isInitializedWithSource(text)) {
+
+            if (activeSurahId.value != currentSurahId) {
                 isLoading.value = true
                 println("Fetching Ayahs for Surah $currentSurahId")
 
@@ -161,23 +165,17 @@ fun SurahPlayItem(
                 ) { ayahList ->
                     isLoading.value = false
                     if (!ayahList.isNullOrEmpty()) {
-                        activeSurahId.value = currentSurahId //  Mark Surah as active
+                        activeSurahId.value = currentSurahId // Mark Surah as active
 
                         // Convert Ayah URLs into MediaItems for ExoPlayer
-                        val mediaItems = ayahList.map { ayah ->
-                            MediaItem.fromUri(ayah.second) // Ayah audio URL
+                        val ayahUrls = ayahList.map { it.second } // Extract Ayah URLs
+                        val intent = Intent(context, MediaPlaybackService::class.java).apply {
+                            putStringArrayListExtra("PLAYLIST", ArrayList(ayahUrls))
+                            putExtra("TITLE", text)
+                            action = "PLAY"
                         }
+                        context.startForegroundService(intent)
 
-                        // Initialize ExoPlayer with the entire Surah
-                        MediaPlayer.initializePlaylist(
-                            mediaItems,
-                            title =text,
-                            context = context,
-                            onStopped = {
-                                isPlaying.value = false
-                                activeSurahId.value = null
-                            }
-                        )
                         isPlaying.value = true
                     } else {
                         println("Failed to fetch Ayahs")
@@ -185,10 +183,13 @@ fun SurahPlayItem(
                 }
             } else {
                 // Toggle Play/Pause if the Surah is already loaded
-                MediaPlayer.playPause(context)
-
+                val toggleIntent = Intent(context, MediaPlaybackService::class.java).apply {
+                    action = "TOGGLE_PLAY"
+                }
+                context.startService(toggleIntent)
             }
         }
+
     ) {
         Icon(
             imageVector = when {

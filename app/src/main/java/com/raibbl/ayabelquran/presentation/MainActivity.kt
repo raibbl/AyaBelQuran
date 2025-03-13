@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     // Override onDestroy to release the MediaPlayer when the Activity is destroyed
     override fun onDestroy() {
         super.onDestroy()
-        MediaPlayer.releasePlayer(this)
+//        MediaPlayer.releasePlayer(this)
     }
 
     @SuppressLint("SetTextI18n")

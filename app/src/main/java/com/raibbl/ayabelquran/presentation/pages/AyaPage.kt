@@ -1,5 +1,6 @@
 package com.raibbl.ayabelquran.presentation.pages
 
+import android.content.Intent
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -45,6 +46,7 @@ import com.google.android.horologist.compose.layout.ScalingLazyColumn
 import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
 import com.google.android.horologist.compose.layout.ScreenScaffold
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
+import com.raibbl.ayabelquran.MediaPlaybackService
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
@@ -65,9 +67,10 @@ fun AyaPage(
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val anchors = mapOf(
         0f to 0,
-        with(LocalDensity.current) { -400.dp.toPx() } to 1,
-        with(LocalDensity.current) { 400.dp.toPx() } to -1
+        with(LocalDensity.current) { -200.dp.toPx() } to 1, // 🔥 Made it more sensitive (was -400.dp)
+        with(LocalDensity.current) { 200.dp.toPx() } to -1  // 🔥 Made it more sensitive (was 400.dp)
     )
+
     val focusRequester = rememberActiveFocusRequester()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -93,7 +96,7 @@ fun AyaPage(
                         .swipeable(
                             state = swipeableState,
                             anchors = anchors,
-                            thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                            thresholds = { _, _ -> FractionalThreshold(0.1f) }, // 🔥 Lower threshold for easier swipe
                             orientation = Orientation.Horizontal
                         )
                 ) {
@@ -177,18 +180,12 @@ fun AyaPage(
                             Button(
                                 onClick = {
                                     val ayahUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3"
-                                    if (!MediaPlayer.isInitializedWithSource(ayahUrl)) {
-                                        MediaPlayer.initializeMediaPlayer(
-                                            url = ayahUrl,
-                                            title = "Aya $verseNumber",
-                                            context = context,
-                                            onReady = {
-                                                MediaPlayer.playPause(context)
-                                            }
-                                        )
-                                    } else {
-                                        MediaPlayer.playPause(context) // Toggle play/pause if already initialized
+                                    val intent = Intent(context, MediaPlaybackService::class.java).apply {
+                                        putExtra("URL", ayahUrl)
+                                        putExtra("TITLE", "Aya $verseNumber")
+                                        action = "PLAY"
                                     }
+                                    context.startForegroundService(intent) // Start playback service
                                 }
                             ) {
                                 Icon(

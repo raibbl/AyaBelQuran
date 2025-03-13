@@ -51,7 +51,7 @@ fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
     val anchors = mapOf(
         0f to 0,
-        with(LocalDensity.current) { 400.dp.toPx() } to 1 // Swipe to the right
+        with(LocalDensity.current) { 200.dp.toPx() } to 1 // Swipe to the right
     )
 
 
@@ -66,7 +66,7 @@ fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
                 .swipeable(
                     state = swipeableState,
                     anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                    thresholds = { _, _ -> FractionalThreshold(0.1f) },
                     orientation = Orientation.Horizontal
                 )
         ) {
