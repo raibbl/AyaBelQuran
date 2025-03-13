@@ -39,11 +39,10 @@ class MediaPlaybackService : Service() {
             "PLAY" -> {
                 if (ayahUrl != null) {
                     if (currentSource == ayahUrl) {
-                        //  If the same verse is playing, toggle play/pause instead of restarting
                         playPause()
                     } else {
                         currentSource = ayahUrl
-                        initializeMediaPlayer(ayahUrl, title, this) //  Start new playback
+                        initializeMediaPlayer(ayahUrl, title, this)
                     }
                 } else if (!playlist.isNullOrEmpty()) {
                     initializePlaylist(playlist, title, this) //  Full surah playback
@@ -58,8 +57,6 @@ class MediaPlaybackService : Service() {
 
     private fun initializeMediaPlayer(url: String, title: String, context: Context) {
         releasePlayer() // Clear previous player instance
-
-        currentSource = title //  Store the correct title for notifications
 
         val mediaMetadata = MediaMetadata.Builder().setTitle(title).build()
 
@@ -97,9 +94,6 @@ class MediaPlaybackService : Service() {
             stopSelf()
             return
         }
-
-        currentSource = surahTitle //  Store the Surah title
-
         val mediaItems = ayahUrls.map { url ->
             MediaItem.Builder().setUri(Uri.parse(url))
                 .setMediaMetadata(MediaMetadata.Builder().setTitle(surahTitle).build()) //  Set Surah title
