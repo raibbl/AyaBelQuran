@@ -28,6 +28,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
@@ -59,6 +60,87 @@ import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 
+@Preview
+@Composable
+fun PreviewSurahAudioPage() {
+    // Mocked NavHostController for the preview
+    val navController = NavHostController(LocalContext.current).apply {
+        navigatorProvider.addNavigator(
+            ComposeNavigator()
+        )
+    }
+
+
+    // Display the page in the preview
+    SurahAudioPage(
+        navController = navController
+    )
+}
+
+@Composable
+fun SurahPlayItem(
+    modifier: Modifier = Modifier,
+    currentSurahId: Int,
+    text: String,
+    context: Context,
+    activeSurahId: MutableState<Int?>,
+    isPlaying: MutableState<Boolean>
+) {
+    val isLoading = rememberSaveable { mutableStateOf(false) }
+
+    Button(
+        modifier = modifier
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .height(50.dp),
+        onClick = {
+            if (activeSurahId.value != currentSurahId) {
+                isLoading.value = true
+
+                // ✅ Fetch and play Surah
+                VerseData.fetchSurahAyahs(context, currentSurahId) { ayahList ->
+                    isLoading.value = false
+                    if (!ayahList.isNullOrEmpty()) {
+                        activeSurahId.value = currentSurahId
+                        isPlaying.value = true // ✅ Mark as playing
+
+                        val ayahUrls = ayahList.map { it.second }
+                        val intent = Intent(context, MediaPlaybackService::class.java).apply {
+                            putStringArrayListExtra("PLAYLIST", ArrayList(ayahUrls))
+                            putExtra("TITLE", text)
+                            action = "PLAY"
+                        }
+                        context.startForegroundService(intent)
+                    } else {
+                        println("Failed to fetch Ayahs")
+                    }
+                }
+            } else {
+                // ✅ Toggle play/pause without losing state
+                isPlaying.value = !isPlaying.value
+                val toggleIntent = Intent(context, MediaPlaybackService::class.java).apply {
+                    action = "TOGGLE_PLAY"
+                }
+                context.startService(toggleIntent)
+            }
+        }
+    ) {
+        Icon(
+            imageVector = when {
+                isLoading.value -> Icons.Default.HourglassEmpty
+                isPlaying.value && activeSurahId.value == currentSurahId -> Icons.Filled.Pause
+                else -> Icons.Filled.PlayArrow
+            },
+            contentDescription = if (isLoading.value) "Loading" else if (isPlaying.value) "Pause" else "Play",
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
 
 @OptIn(ExperimentalWearMaterialApi::class, ExperimentalHorologistApi::class)
 @Composable
@@ -84,7 +166,8 @@ fun SurahAudioPage(
         with(LocalDensity.current) { -200.dp.toPx() } to 1,
     )
     val context = LocalContext.current
-    val activeSurahId = remember { mutableStateOf<Int?>(null) }
+    val activeSurahId = rememberSaveable { mutableStateOf<Int?>(null) }
+    val isPlaying = rememberSaveable { mutableStateOf(false) }
     if (swipeableState.currentValue == 1) {
         LaunchedEffect(Unit) {
             navController.navigate(Screen.MainScreen.route) {
@@ -121,113 +204,23 @@ fun SurahAudioPage(
 
 
             items(surahs.size) { index ->
-                val curentSurahId = index + 1
-                    SurahPlayItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                        currentSurahId = curentSurahId,
-                        text = surahs[index],
-                        context = context,
-                        activeSurahId = activeSurahId
-                    )
-                }
+                val currentSurahId = index + 1
+                SurahPlayItem(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    currentSurahId = currentSurahId,
+                    text = surahs[index],
+                    context = LocalContext.current,
+                    activeSurahId = activeSurahId,
+                    isPlaying = isPlaying
+                )
             }
 
 
-    }
-}
-@Composable
-fun SurahPlayItem(
-    modifier: Modifier = Modifier,
-    currentSurahId: Int,
-    text: String,
-    context: Context,
-    activeSurahId: MutableState<Int?>
-) {
-    val isPlaying = remember { mutableStateOf(false) }
-    val isLoading = remember { mutableStateOf(false) }
-    Button(
-        modifier = modifier
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-            .height(50.dp),
-        onClick = {
-            isPlaying.value = !isPlaying.value
-
-            if (activeSurahId.value != currentSurahId) {
-                isLoading.value = true
-                println("Fetching Ayahs for Surah $currentSurahId")
-
-                // ✅ Fetch all Ayahs for the selected Surah
-                VerseData.fetchSurahAyahs(
-                    context = context,
-                    surahId = currentSurahId
-                ) { ayahList ->
-                    isLoading.value = false
-                    if (!ayahList.isNullOrEmpty()) {
-                        activeSurahId.value = currentSurahId // Mark Surah as active
-
-                        // Convert Ayah URLs into MediaItems for ExoPlayer
-                        val ayahUrls = ayahList.map { it.second } // Extract Ayah URLs
-                        val intent = Intent(context, MediaPlaybackService::class.java).apply {
-                            putStringArrayListExtra("PLAYLIST", ArrayList(ayahUrls))
-                            putExtra("TITLE", text)
-                            action = "PLAY"
-                        }
-                        context.startForegroundService(intent)
-
-                        isPlaying.value = true
-                    } else {
-                        println("Failed to fetch Ayahs")
-                    }
-                }
-            } else {
-                // Toggle Play/Pause if the Surah is already loaded
-                val toggleIntent = Intent(context, MediaPlaybackService::class.java).apply {
-                    action = "TOGGLE_PLAY"
-                }
-                context.startService(toggleIntent)
-            }
         }
-
-    ) {
-        Icon(
-            imageVector = when {
-                isLoading.value -> Icons.Default.HourglassEmpty // ✅ Loading icon
-                isPlaying.value && activeSurahId.value == currentSurahId -> Icons.Filled.Pause // ✅ Show pause if active
-                else -> Icons.Filled.PlayArrow // ✅ Default to play icon
-            },
-            contentDescription = when {
-                isLoading.value -> "Loading"
-                isPlaying.value && activeSurahId.value == currentSurahId -> "Pause"
-                else -> "Play"
-            },
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
 
 
-@Preview
-@Composable
-fun PreviewSurahAudioPage() {
-    // Mocked NavHostController for the preview
-    val navController = NavHostController(LocalContext.current).apply {
-        navigatorProvider.addNavigator(
-            ComposeNavigator()
-        )
-    }
-
-
-    // Display the page in the preview
-    SurahAudioPage(
-        navController = navController
-    )
-}
