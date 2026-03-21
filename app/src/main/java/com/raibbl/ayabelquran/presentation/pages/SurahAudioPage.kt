@@ -8,6 +8,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
@@ -37,6 +39,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
@@ -178,41 +181,49 @@ fun SurahAudioPage(
     }
 
     ScreenScaffold(scrollState = listState) {
-        AnimatedSwipeHint(direction = "right")
-        ScalingLazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .onRotaryScrollEvent {
-                    coroutineScope.launch {
-                        listState.scrollBy(it.verticalScrollPixels)
+        Box(modifier = Modifier.fillMaxSize()) {
+            AnimatedSwipeHint(
+                direction = "right",
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .zIndex(2f),
+                animateOnEntry = true
+            )
+            ScalingLazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onRotaryScrollEvent {
+                        coroutineScope.launch {
+                            listState.scrollBy(it.verticalScrollPixels)
+                        }
+                        true
                     }
-                    true
+                    .swipeable(
+                        state = swipeableState,
+                        anchors = anchors,
+                        thresholds = { _, _ -> FractionalThreshold(0.1f) }, // 🔥 Low
+                        orientation = Orientation.Horizontal
+                    )
+                    .focusRequester(focusRequester)
+                    .focusable(),
+                columnState = listState,
+
+                ) {
+
+
+                items(surahs.size) { index ->
+                    val currentSurahId = index + 1
+                    SurahPlayItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp),
+                        currentSurahId = currentSurahId,
+                        text = surahs[index],
+                        context = LocalContext.current,
+                        activeSurahId = activeSurahId,
+                        isPlaying = isPlaying
+                    )
                 }
-                .swipeable(
-                    state = swipeableState,
-                    anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.1f) }, // 🔥 Low
-                    orientation = Orientation.Horizontal
-                )
-                .focusRequester(focusRequester)
-                .focusable(),
-            columnState = listState,
-
-            ) {
-
-
-            items(surahs.size) { index ->
-                val currentSurahId = index + 1
-                SurahPlayItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp),
-                    currentSurahId = currentSurahId,
-                    text = surahs[index],
-                    context = LocalContext.current,
-                    activeSurahId = activeSurahId,
-                    isPlaying = isPlaying
-                )
             }
 
 

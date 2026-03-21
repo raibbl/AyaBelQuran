@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,6 +35,8 @@ import androidx.navigation.NavHostController
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -48,6 +50,8 @@ import com.google.android.horologist.compose.layout.rememberResponsiveColumnStat
 import com.raibbl.ayabelquran.MediaPlaybackService
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
+import com.raibbl.ayabelquran.presentation.theme.AppThemeColors
+import com.raibbl.ayabelquran.presentation.theme.AppThemeShapes
 import kotlinx.coroutines.launch
 
 
@@ -112,20 +116,16 @@ fun AyaPage(
                         }
                     }
 
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
-                        AnimatedSwipeHint(direction = "right")
-
-                    }
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Spacer(modifier = Modifier.height(50.dp)) // Push the hints download
-                        AnimatedSwipeHint(direction = "left")
-
-                    }
+                    AnimatedSwipeHint(
+                        direction = "right",
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                        animateOnEntry = true
+                    )
+                    AnimatedSwipeHint(
+                        direction = "left",
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        animateOnEntry = true
+                    )
 
                     Column(
                         modifier = Modifier
@@ -155,6 +155,11 @@ fun AyaPage(
                             onClick = {
                                 navController.navigate(Screen.surahListGuessScreen.route)
                             },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = AppThemeColors.Primary,
+                                contentColor = AppThemeColors.OnPrimary
+                            ),
+                            shape = AppThemeShapes.Pill,
                             modifier = Modifier
                                 .padding(top = 5.dp, bottom = 10.dp)
                                 .align(Alignment.CenterHorizontally)
@@ -168,14 +173,15 @@ fun AyaPage(
                         // Navigation Bar at the bottom
                         Row(
                             modifier = Modifier
-                                .height(50.dp)
-                                .padding(bottom = 20.dp)
+                                .height(64.dp)
+                                .padding(bottom = 16.dp)
                                 .align(Alignment.CenterHorizontally),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
 
 
                             Button(
+                                modifier = Modifier.size(56.dp),
                                 onClick = {
                                     val ayahUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3"
                                     val intent = Intent(context, MediaPlaybackService::class.java).apply {
@@ -184,7 +190,12 @@ fun AyaPage(
                                         action = "PLAY"
                                     }
                                     context.startForegroundService(intent) // Start playback service
-                                }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = AppThemeColors.Primary,
+                                    contentColor = AppThemeColors.OnPrimary
+                                ),
+                                shape = CircleShape
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.PlayArrow,
@@ -193,7 +204,15 @@ fun AyaPage(
                                 )
                             }
                             Spacer(modifier = Modifier.width(5.dp))
-                            Button(onClick = onRefresh) {
+                            Button(
+                                modifier = Modifier.size(56.dp),
+                                onClick = onRefresh,
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = AppThemeColors.Primary,
+                                    contentColor = AppThemeColors.OnPrimary
+                                ),
+                                shape = CircleShape
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
                                     contentDescription = "Refresh",
