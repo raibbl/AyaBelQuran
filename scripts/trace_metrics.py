@@ -13,6 +13,7 @@ from perfetto.trace_processor import TraceProcessor
 class Summary:
     trace_path: str
     process: str
+    skip_startup_seconds: float
     frame_count: int
     frame_avg_ms: Optional[float]
     frame_p50_ms: Optional[float]
@@ -53,11 +54,20 @@ def round_or_none(value: Optional[float], digits: int = 3) -> Optional[float]:
         return None
     return round(value, digits)
 
+
 def sql_quote(value: str) -> str:
     return "'" + value.replace("'", "''") + "'"
 
 
-def query_durations_ms(tp: TraceProcessor, process: str, slice_name: str) -> List[float]:
+def query_trace_start_ts_ns(tp: TraceProcessor) -> int:
+    rows = list(tp.query("select min(ts) as ts from slice"))
+    if not rows:
+        return 0
+    ts = rows[0].ts
+    return int(ts) if ts is not None else 0
+
+
+def query_durations_ms(tp: TraceProcessor, process: str, slice_name: str, min_ts_ns: int) -> List[float]:
     q = f"""
     select s.dur / 1e6 as dur_ms
     from slice s
@@ -67,12 +77,13 @@ def query_durations_ms(tp: TraceProcessor, process: str, slice_name: str) -> Lis
     where p.name = {sql_quote(process)}
       and s.name = {sql_quote(slice_name)}
       and s.dur > 0
+      and s.ts >= {min_ts_ns}
     order by s.ts;
     """
     return [float(r.dur_ms) for r in tp.query(q)]
 
 
-def query_frame_durations_ms(tp: TraceProcessor, process: str) -> List[float]:
+def query_frame_durations_ms(tp: TraceProcessor, process: str, min_ts_ns: int) -> List[float]:
     q = f"""
     select s.dur / 1e6 as dur_ms
     from slice s
@@ -82,17 +93,20 @@ def query_frame_durations_ms(tp: TraceProcessor, process: str) -> List[float]:
     where p.name = {sql_quote(process)}
       and s.name glob 'Choreographer#doFrame*'
       and s.dur > 0
+      and s.ts >= {min_ts_ns}
     order by s.ts;
     """
     return [float(r.dur_ms) for r in tp.query(q)]
 
 
-def build_summary(trace_path: str, process: str) -> Summary:
+def build_summary(trace_path: str, process: str, skip_startup_seconds: float = 0.0) -> Summary:
     tp = TraceProcessor(trace=trace_path)
-    frames = query_frame_durations_ms(tp, process)
-    traversal = query_durations_ms(tp, process, "traversal")
-    on_measure = query_durations_ms(tp, process, "AndroidOwner:onMeasure")
-    recompose = query_durations_ms(tp, process, "Recomposer:recompose")
+    trace_start_ts_ns = query_trace_start_ts_ns(tp)
+    min_ts_ns = trace_start_ts_ns + int(skip_startup_seconds * 1e9)
+    frames = query_frame_durations_ms(tp, process, min_ts_ns)
+    traversal = query_durations_ms(tp, process, "traversal", min_ts_ns)
+    on_measure = query_durations_ms(tp, process, "AndroidOwner:onMeasure", min_ts_ns)
+    recompose = query_durations_ms(tp, process, "Recomposer:recompose", min_ts_ns)
 
     frames_sorted = sorted(frames)
     traversal_sorted = sorted(traversal)
@@ -106,6 +120,7 @@ def build_summary(trace_path: str, process: str) -> Summary:
     return Summary(
         trace_path=trace_path,
         process=process,
+        skip_startup_seconds=round(skip_startup_seconds, 3),
         frame_count=frame_count,
         frame_avg_ms=round_or_none(statistics.mean(frames) if frames else None),
         frame_p50_ms=round_or_none(percentile(frames_sorted, 50)),
@@ -160,6 +175,8 @@ def compare(before: Dict, after: Dict) -> Dict:
             verdict = "unchanged"
         out[key] = {"before": b, "after": a, "delta": delta, "change_pct": change_pct, "verdict": verdict}
     return out
+
+
 def grade_lower_is_better(value: Optional[float], good_max: float, ok_max: float) -> str:
     if value is None:
         return "unknown"
@@ -197,6 +214,8 @@ def print_human_summary(summary: Dict) -> None:
     print("=== Trace Summary ===")
     print(f"Trace: {summary['trace_path']}")
     print(f"Process: {summary['process']}")
+    if summary.get("skip_startup_seconds", 0) > 0:
+        print(f"Startup ignored: first {summary['skip_startup_seconds']}s")
     print(f"Frames analyzed: {summary['frame_count']}")
     print("")
     print("Smoothness health (lower is better):")
@@ -283,14 +302,14 @@ def main() -> None:
     parser.add_argument("--before", required=True, help="Path to baseline (before) trace.")
     parser.add_argument("--after", help="Path to comparison (after) trace.")
     parser.add_argument("--process", default="com.raibbl.ayabelquran", help="Android process name to analyze.")
+    parser.add_argument("--skip-startup-seconds", type=float, default=0.0, help="Ignore this many seconds from trace start.")
     parser.add_argument("--output", choices=["human", "json"], default="human", help="Output format.")
     args = parser.parse_args()
-
-    before_summary = build_summary(args.before, args.process)
+    before_summary = build_summary(args.before, args.process, args.skip_startup_seconds)
     result = {"before": before_summary.__dict__}
 
     if args.after:
-        after_summary = build_summary(args.after, args.process)
+        after_summary = build_summary(args.after, args.process, args.skip_startup_seconds)
         result["after"] = after_summary.__dict__
         result["comparison"] = compare(result["before"], result["after"])
     if args.output == "json":

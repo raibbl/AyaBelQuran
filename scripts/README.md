@@ -26,10 +26,16 @@ Compare two traces (before and after):
 python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace
 ```
 
+Ignore startup noise (recommended for interaction-only comparisons):
+
+```bash path=null start=null
+python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace --skip-startup-seconds 1.0
+```
+
 If you want JSON output for automation:
 
 ```bash path=null start=null
-python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace --output json
+python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace --skip-startup-seconds 1.0 --output json
 ```
 
 ## How to read the output (quick)
