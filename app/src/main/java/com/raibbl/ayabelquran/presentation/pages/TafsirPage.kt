@@ -81,7 +81,11 @@ fun TafsirPage(verseTafsir: JSONObject, navController: NavHostController) {
 
                 }
             }
-            AnimatedSwipeHint(direction = "left")
+            AnimatedSwipeHint(
+                direction = "left",
+                modifier = Modifier.align(Alignment.CenterStart),
+                animateOnEntry = true
+            )
             ScalingLazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()

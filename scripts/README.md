@@ -17,19 +17,19 @@ python3 -m pip install --user perfetto
 Run a baseline report from one trace:
 
 ```bash path=null start=null
-python3 scripts/trace_metrics.py --before /path/to/your.trace
+python3 scripts/trace_metrics.py --before traces/your.trace
 ```
 
 Compare two traces (before and after):
 
 ```bash path=null start=null
-python3 scripts/trace_metrics.py --before /path/to/before.trace --after /path/to/after.trace
+python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace
 ```
 
 If you want JSON output for automation:
 
 ```bash path=null start=null
-python3 scripts/trace_metrics.py --before /path/to/before.trace --after /path/to/after.trace --output json
+python3 scripts/trace_metrics.py --before traces/before.trace --after traces/after.trace --output json
 ```
 
 ## How to read the output (quick)
@@ -54,6 +54,7 @@ For fair before/after comparison:
 ## Example with this project
 
 ```bash path=null start=null
-python3 scripts/trace_metrics.py --before cpu-perfetto-20260321T121222.trace
+python3 scripts/trace_metrics.py --before traces/cpu-perfetto-20260321T121222.trace
+python3 scripts/trace_metrics.py --before traces/cpu-perfetto-20260321T121222.trace --after traces/cpu-perfetto-20260321T125152.trace
 ```
 

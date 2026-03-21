@@ -1,13 +1,8 @@
 package com.raibbl.ayabelquran.presentation.components
+import androidx.compose.animation.core.Animatable
 
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,34 +10,46 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 
 
 @Composable
-fun AnimatedSwipeHint(direction: String) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val offsetX by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 5f, // Adjust the distance
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = "animation offset"
-    )
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = if (direction == "right") Alignment.CenterEnd else Alignment.CenterStart
-    ) {
-        Icon(
-            imageVector = if (direction == "right") Icons.Default.ChevronRight else Icons.Default.ChevronLeft,
-            contentDescription = "Swipe",
-            modifier = Modifier
-                .offset(x = offsetX.dp)
-                .padding(end = 16.dp).size(25.dp)
-        )
+fun AnimatedSwipeHint(
+    direction: String,
+    modifier: Modifier = Modifier,
+    animateOnEntry: Boolean = true
+) {
+    val offset = remember { Animatable(0f) }
+
+    LaunchedEffect(direction, animateOnEntry) {
+        offset.snapTo(0f)
+        if (animateOnEntry) {
+            repeat(3) {
+                offset.animateTo(
+                    targetValue = 5f,
+                    animationSpec = tween(durationMillis = 280, easing = LinearEasing)
+                )
+                offset.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(durationMillis = 280, easing = LinearEasing)
+                )
+            }
+        }
     }
+
+    val directionalOffset = if (direction == "right") offset.value else -offset.value
+    val edgePadding = if (direction == "right") Modifier.padding(end = 16.dp) else Modifier.padding(start = 16.dp)
+
+    Icon(
+        imageVector = if (direction == "right") Icons.Default.ChevronRight else Icons.Default.ChevronLeft,
+        contentDescription = "Swipe",
+        modifier = modifier
+            .then(edgePadding)
+            .offset(x = directionalOffset.dp)
+            .size(25.dp)
+    )
 }

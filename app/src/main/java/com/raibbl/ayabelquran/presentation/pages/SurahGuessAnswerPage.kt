@@ -1,7 +1,6 @@
 package com.raibbl.ayabelquran.presentation.pages
 
 
-import androidx.compose.material3.Button
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,13 +33,18 @@ import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
 import com.raibbl.ayabelquran.R.drawable.correct_guess
 import com.raibbl.ayabelquran.R.drawable.wrong_guess
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
 import com.raibbl.ayabelquran.presentation.navigation.Screen
+import com.raibbl.ayabelquran.presentation.theme.AppThemeColors
+import com.raibbl.ayabelquran.presentation.theme.AppThemeShapes
 import kotlinx.coroutines.launch
 
 
@@ -64,7 +67,11 @@ fun SurahGuessAnswerPage(isCorrect:Boolean , navController: NavHostController) {
             thresholds = { _, _ -> FractionalThreshold(0.3f) },
             orientation = Orientation.Horizontal
         ), contentAlignment = Alignment.Center) {
-        AnimatedSwipeHint(direction = "left")
+        AnimatedSwipeHint(
+            direction = "left",
+            modifier = Modifier.align(Alignment.CenterStart),
+            animateOnEntry = true
+        )
         if (swipeableState.currentValue == 1) {
             LaunchedEffect(Unit) {
                 navController.navigate(Screen.MainScreen.route) {
@@ -115,6 +122,11 @@ fun SurahGuessAnswerPage(isCorrect:Boolean , navController: NavHostController) {
                 modifier = Modifier
                     .padding(start = 30.dp, end = 30.dp, top = 5.dp, bottom = 20.dp)
                     .align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = AppThemeColors.Primary,
+                    contentColor = AppThemeColors.OnPrimary
+                ),
+                shape = AppThemeShapes.Pill,
                 onClick = {
                     navController.navigate(Screen.tafsirPage.route)
                     }
