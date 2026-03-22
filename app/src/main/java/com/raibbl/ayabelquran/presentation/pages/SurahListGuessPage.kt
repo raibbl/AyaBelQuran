@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,42 +19,45 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
-import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.ComposeNavigator
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
+import com.google.android.horologist.annotations.ExperimentalHorologistApi
+import com.google.android.horologist.compose.layout.ScalingLazyColumn
+import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
+import com.google.android.horologist.compose.layout.ScalingLazyColumnState
+import com.google.android.horologist.compose.layout.ScreenScaffold
+import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.PositionIndicator
-import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
 import com.raibbl.ayabelquran.R
 import com.raibbl.ayabelquran.presentation.components.AnimatedSwipeHint
+import com.raibbl.ayabelquran.presentation.components.WatchSafeListItem
 import com.raibbl.ayabelquran.presentation.navigation.Screen
-import com.raibbl.ayabelquran.presentation.theme.AppThemeColors
-import com.raibbl.ayabelquran.presentation.theme.AppThemeShapes
 import kotlinx.coroutines.launch
-@OptIn(ExperimentalWearMaterialApi::class, ExperimentalWearFoundationApi::class)
+@OptIn(ExperimentalWearMaterialApi::class, ExperimentalHorologistApi::class)
 @Composable
 fun SurahListGuessPage(
     surahId: Int,
     navController: NavHostController
 ) {
-    val listState = rememberScalingLazyListState()
+    val listState = rememberResponsiveColumnState(
+        first = ScalingLazyColumnDefaults.ItemType.Text,
+        last = ScalingLazyColumnDefaults.ItemType.SingleButton,
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        rotaryMode = ScalingLazyColumnState.RotaryMode.Scroll,
+        hapticsEnabled = true,
+        reverseLayout = false,
+        userScrollEnabled = true,
+        initialItemIndex = 0
+    )
     val surahs = stringArrayResource(id = R.array.surah_array)
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val focusRequester = rememberActiveFocusRequester()
@@ -74,10 +79,7 @@ fun SurahListGuessPage(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
-
-    Scaffold(
-        positionIndicator = { PositionIndicator(scalingLazyListState = listState) }
-    ) {
+    ScreenScaffold(scrollState = listState) {
         Box(modifier = Modifier.fillMaxSize()) {
             ScalingLazyColumn(
                 modifier = Modifier
@@ -96,15 +98,17 @@ fun SurahListGuessPage(
                     )
                     .focusRequester(focusRequester)
                     .focusable(),
-                state = listState,
+                columnState = listState,
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
                 surahs.forEachIndexed { index, surahName ->
                     val currentSurahId = index + 1
                     item(key = "surah_guess_item_$currentSurahId") {
                         TextItem(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(72.dp),
+                                .fillMaxWidth(),
                             text = surahName,
                             onClick = {
                                 if (surahId == currentSurahId) {
@@ -129,6 +133,9 @@ fun SurahListGuessPage(
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
             AnimatedSwipeHint(
                 direction = "left",
@@ -143,22 +150,11 @@ fun SurahListGuessPage(
 
 @Composable
 fun TextItem(modifier: Modifier, text: String, onClick: () -> Unit) {
-    Button(
-        modifier = modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = AppThemeColors.Primary,
-            contentColor = AppThemeColors.OnPrimary
-        ),
-        shape = AppThemeShapes.Pill,
-        onClick = onClick
-    ) {
-        Text(
-            text = text,
-            style = TextStyle(fontSize = 16.sp),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
-        )
-    }
+    WatchSafeListItem(
+        text = text,
+        onClick = onClick,
+        modifier = modifier
+    )
 }
 
 

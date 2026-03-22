@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -120,6 +121,8 @@ fun SurahGuessAnswerPage(isCorrect:Boolean , navController: NavHostController) {
             )
             Button(
                 modifier = Modifier
+                    .fillMaxWidth(0.72f)
+                    .heightIn(min = 58.dp)
                     .padding(start = 30.dp, end = 30.dp, top = 5.dp, bottom = 20.dp)
                     .align(Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(
@@ -136,6 +139,9 @@ fun SurahGuessAnswerPage(isCorrect:Boolean , navController: NavHostController) {
                    text = "تعرف على الآية",
                    textAlign = TextAlign.Center,
                    fontSize = 12.sp,
+                   lineHeight = 16.sp,
+                   maxLines = 2,
+                   modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
     }
