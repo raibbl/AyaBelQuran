@@ -29,7 +29,7 @@ class VerseData {
                 val verseRequestUrl =
                     "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 
-                val verseRequest = StringRequest(
+                val verseRequest = Utf8StringRequest(
                     Request.Method.GET, verseRequestUrl,
                     { response ->
                         try {
@@ -63,7 +63,7 @@ class VerseData {
                 )
                 val verseTafsirRequestUrl =
                     "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/ar.muyassar"
-                val verseTafsirRequest = StringRequest(
+                val verseTafsirRequest = Utf8StringRequest(
                     Request.Method.GET, verseTafsirRequestUrl,
                     { response ->
                         try {
@@ -99,7 +99,7 @@ class VerseData {
                 val queue = Volley.newRequestQueue(context)
                 val surahRequestUrl = "https://api.alquran.cloud/v1/surah/$surahId/ar.alafasy"
 
-                val surahRequest = StringRequest(
+                val surahRequest = Utf8StringRequest(
                     Request.Method.GET, surahRequestUrl,
                     { response ->
                         try {
