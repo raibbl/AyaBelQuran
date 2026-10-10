@@ -49,6 +49,24 @@
         </receiver>
 
         <service
+            android:name=".complication.VerseComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_verse_complication"
+            android:label="@string/verse_complication_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="LONG_TEXT,SHORT_TEXT" />
+            <!-- The verse changes daily; hourly refresh picks it up soon after midnight. -->
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="3600" />
+        </service>
+
+        <service
             android:name=".MediaPlaybackService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="false"/>

@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AyaBelQuran"
 include(":app")
+include(":watchface")

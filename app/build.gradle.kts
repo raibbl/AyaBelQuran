@@ -63,6 +63,8 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation ("androidx.core:core-ktx:1.15.0") // For NotificationCompat
     implementation ("androidx.wear:wear-ongoing:1.0.0")
+    // "Verse of the Day" complication data source
+    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1")
     implementation ("androidx.media:media:1.6.0")
     implementation("androidx.media3:media3-exoplayer:1.5.1") // For MediaSession
     //  Add MediaSession for controlling playback

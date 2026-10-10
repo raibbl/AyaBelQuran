@@ -21,11 +21,12 @@ class VerseData {
             responseString: MutableState<String>,
             verseNumber: MutableState<Int>,
             verseTafsir: MutableState<JSONObject>,
-            randomize: Boolean
+            randomize: Boolean,
+            verseNumberOverride: Int? = null
         ) {
             CoroutineScope(Dispatchers.IO).launch {
                 val queue = Volley.newRequestQueue(context)
-                val generatedVerseNumber = generateVerseNumber(randomize)
+                val generatedVerseNumber = verseNumberOverride ?: generateVerseNumber(randomize)
                 val verseRequestUrl =
                     "https://api.alquran.cloud/v1/ayah/$generatedVerseNumber/editions/quran-uthmani,en.asad"
 
